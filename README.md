@@ -2,6 +2,18 @@
 
 DoodleVerse is a feature-rich digital drawing and painting application built with Flutter. It provides users with a versatile canvas for creating digital art, sketches, and illustrations.
 
+Screenshots
+<table>
+  <tr>
+    <td><img src="screenshots/screenshot_1.png" alt="Main Drawing Screen" width="200"/></td>
+    <td><img src="screenshots/screenshot_2.png" alt="Brush Selection" width="200"/></td>
+  </tr>
+  <tr>
+    <td><img src="screenshots/screenshot_3.png" alt="Color Picker" width="200"/></td>
+    <td><img src="screenshots/screenshot_4.png" alt="Layer Management" width="200"/></td>
+  </tr>
+</table>
+
 ## Features
 
 ### Drawing Tools
