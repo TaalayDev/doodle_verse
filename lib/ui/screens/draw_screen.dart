@@ -431,12 +431,14 @@ class _DrawBodyState extends State<DrawBody> {
                             : null,
                       ),
                       const SizedBox(height: 5),
-                      Text(
-                        brush.name,
-                        style: TextStyle(
-                          color: _brush.id == brush.id
-                              ? Theme.of(context).primaryColor
-                              : null,
+                      FittedBox(
+                        child: Text(
+                          brush.name,
+                          style: TextStyle(
+                            color: _brush.id == brush.id
+                                ? Theme.of(context).primaryColor
+                                : null,
+                          ),
                         ),
                       ),
                     ],
