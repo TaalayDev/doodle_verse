@@ -99,7 +99,7 @@ final watercolor = BrushData(
   },
 );
 
-final eraser = BrushData(
+const eraser = BrushData(
   id: 5,
   name: 'eraser',
   stroke: 'eraser_stroke',
