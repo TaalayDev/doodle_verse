@@ -545,7 +545,8 @@ class _DrawBodyState extends State<DrawBody> {
     setState(() {
       _currentPath = DrawingPath(
         brush: _brush,
-        color: _currentColor,
+        color:
+            _brush.id == widget.tools.eraser.id ? Colors.white : _currentColor,
         width: _brushSize,
         points: [
           (

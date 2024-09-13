@@ -103,29 +103,12 @@ final eraser = BrushData(
   id: 5,
   name: 'eraser',
   stroke: 'eraser_stroke',
-  blendMode: ui.BlendMode.clear,
-  customPainter: (canvas, drawingPath) {
-    final paint = Paint()
-      ..color = Colors.transparent
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = drawingPath.width
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round
-      ..blendMode = BlendMode.modulate;
-
-    for (int i = 1; i < drawingPath.points.length; i++) {
-      final p0 = drawingPath.points[i - 1];
-      final p1 = drawingPath.points[i];
-
-      p0.offset.calculateDensityOffset(
-        p1.offset,
-        drawingPath.brush.densityOffset,
-        (offset) {
-          canvas.drawLine(p0.offset, offset, paint);
-        },
-      );
-    }
-  },
+  densityOffset: 1.0,
+  strokeCap: ui.StrokeCap.round,
+  strokeJoin: ui.StrokeJoin.round,
+  random: [-1, 1],
+  sizeRandom: [-3, 3],
+  useBrushWidthDensity: false,
 );
 
 final crayon = BrushData(
