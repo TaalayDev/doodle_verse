@@ -1,26 +1,8 @@
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 
-import '../../data.dart';
-
-class DrawingPath {
-  final BrushData brush;
-  final Color color;
-  final double width;
-  final List<
-      ({
-        Offset offset,
-        Offset? randomOffset,
-        double? randomSize,
-      })> points;
-
-  DrawingPath({
-    required this.brush,
-    required this.color,
-    required this.width,
-    required this.points,
-  });
-}
+import '../../data/models/drawing_path.dart';
+import '../../core/extensions/offset_extensions.dart';
 
 class DrawingPainter extends CustomPainter {
   DrawingPainter(this.paths, this.currentPath);
@@ -41,6 +23,11 @@ class DrawingPainter extends CustomPainter {
   }
 
   void _drawPath(Canvas canvas, DrawingPath drawingPath) {
+    if (drawingPath.brush.customPainter != null) {
+      drawingPath.brush.customPainter!(canvas, drawingPath);
+      return;
+    }
+
     final paint = Paint()
       ..color = drawingPath.color.withOpacity(1 - drawingPath.brush.opacityDiff)
       ..strokeCap = drawingPath.brush.strokeCap
@@ -59,7 +46,6 @@ class DrawingPainter extends CustomPainter {
     if (drawingPath.points.length < 2) {
       return;
     }
-
     if (drawingPath.brush.pathEffect != null) {
       _drawPathEffect(canvas, drawingPath, paint);
     } else if (drawingPath.brush.brush != null) {
@@ -81,7 +67,7 @@ class DrawingPainter extends CustomPainter {
           final effect = drawingPath.brush.pathEffect!(
             p1.randomSize ?? drawingPath.width,
             offset,
-            p1.randomOffset ?? const Offset(0, 0),
+            p1.randomOffset ?? [],
           );
 
           paint.strokeWidth = p1.randomSize ?? drawingPath.width;
@@ -173,41 +159,4 @@ class DrawingPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(DrawingPainter oldDelegate) => true;
-}
-
-extension OffsetExtension on Offset {
-  Offset operator -(Offset other) => Offset(dx - other.dx, dy - other.dy);
-  Offset operator +(Offset other) => Offset(dx + other.dx, dy + other.dy);
-  Offset operator /(double value) => Offset(dx / value, dy / value);
-  Offset operator *(double value) => Offset(dx * value, dy * value);
-
-  double distanceTo(Offset other) =>
-      (dx - other.dx).abs() + (dy - other.dy).abs();
-
-  void calculateDensityOffset(
-    Offset other,
-    double density,
-    Function(Offset) callback,
-  ) {
-    final difference = other - this;
-    final distance = difference.distance;
-
-    if (distance == 0) {
-      // Points are the same; invoke callback once.
-      callback(this);
-      return;
-    }
-
-    final direction = difference / distance;
-
-    for (double i = 0; i <= distance; i += density) {
-      final point = this + direction * i;
-      callback(point);
-    }
-
-    // Ensure the last point is included.
-    if ((distance % density) != 0) {
-      callback(other);
-    }
-  }
 }

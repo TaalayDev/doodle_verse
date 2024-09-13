@@ -10,6 +10,7 @@ import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../../data.dart';
+import '../../data/models/drawing_path.dart';
 import '../../providers/common.dart';
 import '../../providers/projects.dart';
 import '../widgets/brush_settings_bottom_sheet.dart';
@@ -291,17 +292,6 @@ class _DrawBodyState extends State<DrawBody> {
             ),
             MenuButton(
               child: Icon(
-                Feather.edit_2,
-                color: _brush.id == widget.tools.pencil.id
-                    ? Theme.of(context).primaryColor
-                    : null,
-              ),
-              onPressed: () {
-                _setBrush(widget.tools.pencil);
-              },
-            ),
-            MenuButton(
-              child: Icon(
                 Ionicons.brush_outline,
                 size: 28,
                 color: _brush.id != widget.tools.pencil.id &&
@@ -311,6 +301,18 @@ class _DrawBodyState extends State<DrawBody> {
               ),
               onPressed: () async {
                 _showBrushPicker();
+              },
+            ),
+            MenuButton(
+              child: Icon(
+                Fontisto.eraser,
+                size: 26,
+                color: _brush.id == widget.tools.eraser.id
+                    ? Theme.of(context).primaryColor
+                    : null,
+              ),
+              onPressed: () {
+                _setBrush(widget.tools.eraser);
               },
             ),
             MenuButton(
@@ -330,15 +332,77 @@ class _DrawBodyState extends State<DrawBody> {
               },
             ),
             MenuButton(
-              child: Icon(
-                Fontisto.eraser,
+              child: const Icon(
+                Feather.square,
                 size: 26,
-                color: _brush.id == widget.tools.eraser.id
-                    ? Theme.of(context).primaryColor
-                    : null,
               ),
               onPressed: () {
-                _setBrush(widget.tools.eraser);
+                showModalBottomSheet(
+                  context: context,
+                  builder: (context) {
+                    return Container(
+                      padding: const EdgeInsets.all(20),
+                      child: GridView.count(
+                        crossAxisCount: 4,
+                        crossAxisSpacing: 10,
+                        mainAxisSpacing: 10,
+                        shrinkWrap: true,
+                        children: [
+                          for (var brush in [
+                            widget.tools.rectangleTool,
+                            widget.tools.circleTool,
+                            widget.tools.lineTool,
+                            widget.tools.triangleTool,
+                            widget.tools.heartTool,
+                            widget.tools.starTool,
+                            widget.tools.polygonTool,
+                            widget.tools.spiralTool,
+                            widget.tools.arrowTool,
+                            widget.tools.ellipseTool,
+                            widget.tools.cloudTool,
+                            widget.tools.lightningTool,
+                            widget.tools.pentagonTool,
+                            widget.tools.hexagonTool,
+                            widget.tools.parallelogramTool,
+                            widget.tools.trapezoidTool,
+                            widget.tools.fillTool,
+                          ])
+                            MaterialInkWell(
+                              onTap: () {
+                                _setBrush(brush);
+                                Navigator.of(context).pop();
+                              },
+                              padding: const EdgeInsets.all(10),
+                              borderRadius: BorderRadius.circular(30),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    _getBrushIcon(brush),
+                                    size: 26,
+                                    color: _brush.id == brush.id
+                                        ? Theme.of(context).primaryColor
+                                        : null,
+                                  ),
+                                  const SizedBox(height: 5),
+                                  FittedBox(
+                                    child: Text(
+                                      brush.name,
+                                      style: TextStyle(
+                                        color: _brush.id == brush.id
+                                            ? Theme.of(context).primaryColor
+                                            : null,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                        ],
+                      ),
+                    );
+                  },
+                );
               },
             ),
           ],
@@ -371,6 +435,10 @@ class _DrawBodyState extends State<DrawBody> {
         return Feather.book_open;
       case 'heart':
         return Feather.heart;
+      case 'bubble':
+        return MaterialCommunityIcons.chart_bubble;
+      case 'glitter':
+        return Feather.star;
       default:
         return Feather.edit_2;
     }
@@ -389,8 +457,8 @@ class _DrawBodyState extends State<DrawBody> {
             shrinkWrap: true,
             children: [
               for (var brush in [
+                widget.tools.pencil,
                 widget.tools.defaultBrush,
-                widget.tools.brush1,
                 widget.tools.marker,
                 widget.tools.watercolor,
                 widget.tools.crayon,
@@ -400,6 +468,40 @@ class _DrawBodyState extends State<DrawBody> {
                 widget.tools.sketchy,
                 widget.tools.star,
                 widget.tools.heart,
+                widget.tools.bubbleBrush,
+                widget.tools.glitterBrush,
+                widget.tools.rainbowBrush,
+                widget.tools.sparkleBrush,
+                widget.tools.leafBrush,
+                widget.tools.grassBrush,
+                widget.tools.pixelBrush,
+                widget.tools.glowBrush,
+                widget.tools.mosaicBrush,
+                widget.tools.splatBrush,
+                widget.tools.calligraphyBrush,
+                widget.tools.electricBrush,
+                widget.tools.furBrush,
+                widget.tools.galaxyBrush,
+                widget.tools.fractalBrush,
+                widget.tools.fireBrush,
+                widget.tools.snowflakeBrush,
+                widget.tools.cloudBrush,
+                widget.tools.lightningBrush,
+                widget.tools.featherBrush,
+                widget.tools.galaxyBrush1,
+                widget.tools.confettiBrush,
+                widget.tools.metallicBrush,
+                widget.tools.embroideryBrush,
+                widget.tools.stainedGlassBrush,
+                widget.tools.ribbonBrush,
+                widget.tools.particleFieldBrush,
+                widget.tools.waveInterferenceBrush,
+                widget.tools.voronoiBrush,
+                widget.tools.chaosTheoryBrush,
+                widget.tools.inkBrush,
+                widget.tools.fireworksBrush,
+                widget.tools.embossBrush,
+                widget.tools.glassBrush
               ])
                 MaterialInkWell(
                   onTap: () {
@@ -448,7 +550,7 @@ class _DrawBodyState extends State<DrawBody> {
         points: [
           (
             offset: details.localPosition,
-            randomOffset: null,
+            randomOffset: _brush.randoms?.call(),
             randomSize: null,
           )
         ],
@@ -465,16 +567,17 @@ class _DrawBodyState extends State<DrawBody> {
     setState(() {
       _currentPath!.points.add((
         offset: offset,
-        randomOffset: Offset(
-          Random().nextDouble() +
-              (_brush.random.isNotEmpty
-                  ? _brush.random[1] + _brush.random[0]
-                  : 0),
-          Random().nextDouble() +
-              (_brush.random.isNotEmpty
-                  ? _brush.random[1] + _brush.random[0]
-                  : 0),
-        ),
+        randomOffset: _brush.randoms?.call() ??
+            [
+              Random().nextDouble() +
+                  (_brush.random.isNotEmpty
+                      ? _brush.random[1] + _brush.random[0]
+                      : 0),
+              Random().nextDouble() +
+                  (_brush.random.isNotEmpty
+                      ? _brush.random[1] + _brush.random[0]
+                      : 0),
+            ],
         randomSize: _brushSize,
       ));
     });
@@ -484,13 +587,16 @@ class _DrawBodyState extends State<DrawBody> {
     _renderPathsToImage(_currentPath);
   }
 
-  void _renderPathsToImage(DrawingPath? path) async {
+  void _renderPathsToImage(DrawingPath? drawingPath) async {
+    if (drawingPath == null) return;
+
     final recorder = ui.PictureRecorder();
     final canvas = Canvas(recorder);
 
-    final painter = DrawingPainter([], path);
-
     final size = MediaQuery.of(context).size;
+
+    final painter = DrawingPainter([], drawingPath);
+
     painter.paint(canvas, size);
 
     final picture = recorder.endRecording();
@@ -512,7 +618,6 @@ class _DrawBodyState extends State<DrawBody> {
   Future<void> _saveLayerState(ui.Image image) async {
     _projectNotifier.addNewState(widget.project.layers.last.id, image);
 
-    // Очистка стека отмененных действий в памяти
     setState(() {
       _redoStack.clear();
     });
@@ -542,7 +647,6 @@ class _DrawBodyState extends State<DrawBody> {
         _redoStack.add(image);
       });
 
-      // Обновление состояния слоя
       final currentLayer = widget.project.layers.last;
       _projectNotifier.undoState(currentLayer.id);
     }
@@ -555,7 +659,6 @@ class _DrawBodyState extends State<DrawBody> {
         _paths.add(image);
       });
 
-      // Обновление состояния слоя
       final currentLayer = widget.project.layers.last;
       _projectNotifier.redoState(currentLayer.id);
     }
