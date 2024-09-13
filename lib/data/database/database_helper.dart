@@ -185,8 +185,8 @@ class DatabaseHelper {
       layers.add(
         LayerModel.fromMap({
           ...layerMap,
-          'prevLayerStates': prevStates,
-          'redoLayerStates': redoStates,
+          'prevLayerStates': prevStates.map((s) => s.toJson()).toList(),
+          'redoLayerStates': redoStates.map((s) => s.toJson()).toList(),
         }),
       );
     }

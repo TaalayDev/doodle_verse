@@ -42,10 +42,11 @@ class Tools extends _$Tools {
       opacityDiff: 0.2,
       isNew: true,
       isLocked: true,
-      densityOffset: 1.0,
+      densityOffset: 5.0,
       strokeJoin: ui.StrokeJoin.bevel,
       random: [-1, 1],
       sizeRandom: [-3, 3],
+      useBrushWidthDensity: false,
     );
 
     const defaultBrush = BrushData(

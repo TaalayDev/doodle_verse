@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:math';
 import 'dart:ui' as ui;
 
@@ -6,6 +7,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
+import 'package:path_provider/path_provider.dart';
 
 import '../../data.dart';
 import '../../providers/common.dart';
@@ -13,25 +15,7 @@ import '../../providers/projects.dart';
 import '../widgets/brush_settings_bottom_sheet.dart';
 import '../widgets/color_picker_bottom_sheet.dart';
 import '../widgets.dart';
-
-class DrawingPath {
-  final BrushData brush;
-  final Color color;
-  final double width;
-  final List<
-      ({
-        Offset offset,
-        Offset? randomOffset,
-        double? randomSize,
-      })> points;
-
-  DrawingPath({
-    required this.brush,
-    required this.color,
-    required this.width,
-    required this.points,
-  });
-}
+import '../widgets/drawing_painter.dart';
 
 class DrawScreen extends HookConsumerWidget {
   const DrawScreen({
@@ -98,24 +82,42 @@ class _DrawBodyState extends State<DrawBody> {
   }
 
   void _loadProject() {
-    setState(() {
-      _paths = [];
-    });
+    for (final layer in widget.project.layers) {
+      _loadLayerStates(layer);
+    }
   }
 
-  void _saveProject() {
-    final layer = LayerModel(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      name: 'Drawing Layer',
-    );
+  void _loadLayerStates(LayerModel layer) async {
+    final undoStates = layer.prevStates;
+    final redoStates = layer.redoStates;
 
-    final updatedLayers = [...widget.project.layers, layer];
-    _projectNotifier.updateLayers(updatedLayers);
+    for (final state in undoStates) {
+      final image = await _loadImageFromFile(state.imagePath);
+      _paths.add(image);
+    }
+
+    for (final state in redoStates) {
+      final image = await _loadImageFromFile(state.imagePath);
+      _redoStack.add(image);
+    }
+    setState(() {});
+  }
+
+  Future<ui.Image> _loadImageFromFile(String path) async {
+    final file = File(path);
+    final bytes = await file.readAsBytes();
+    final codec = await ui.instantiateImageCodec(bytes);
+    final fi = await codec.getNextFrame();
+    return fi.image;
+  }
+
+  void _saveProject() async {
+    await widget.projectNotifer.saveProject();
 
     _saveProjectThumbnail();
   }
 
-  void _saveProjectThumbnail() async {
+  Future<ui.Image> _capture() async {
     final recorder = ui.PictureRecorder();
     final canvas = Canvas(recorder);
     final size = MediaQuery.of(context).size;
@@ -124,8 +126,12 @@ class _DrawBodyState extends State<DrawBody> {
     painter.paint(canvas, size);
 
     final picture = recorder.endRecording();
-    final img = await picture.toImage(size.width.toInt(), size.height.toInt());
-    final pngBytes = await img.toByteData(format: ui.ImageByteFormat.png);
+    return picture.toImage(size.width.toInt(), size.height.toInt());
+  }
+
+  void _saveProjectThumbnail() async {
+    final image = await _capture();
+    final pngBytes = await image.toByteData(format: ui.ImageByteFormat.png);
 
     if (pngBytes != null) {
       final uint8List = Uint8List.view(pngBytes.buffer);
@@ -494,6 +500,8 @@ class _DrawBodyState extends State<DrawBody> {
       size.height.toInt(),
     );
 
+    await _saveLayerState(image);
+
     setState(() {
       _paths.add(image);
       _currentPath = null;
@@ -501,16 +509,13 @@ class _DrawBodyState extends State<DrawBody> {
     });
   }
 
-  Future<ui.Image?> _captureCanvasImage() async {
-    try {
-      RenderRepaintBoundary boundary = _canvasKey.currentContext!
-          .findRenderObject() as RenderRepaintBoundary;
-      ui.Image image = await boundary.toImage(pixelRatio: 3.0);
-      return image;
-    } catch (e) {
-      print("Failed to capture canvas image: $e");
-      return null;
-    }
+  Future<void> _saveLayerState(ui.Image image) async {
+    _projectNotifier.addNewState(widget.project.layers.last.id, image);
+
+    // Очистка стека отмененных действий в памяти
+    setState(() {
+      _redoStack.clear();
+    });
   }
 
   void _setBrush(BrushData brush) {
@@ -533,16 +538,26 @@ class _DrawBodyState extends State<DrawBody> {
   void _undo() {
     if (_paths.isNotEmpty) {
       setState(() {
-        _redoStack.add(_paths.removeLast());
+        final image = _paths.removeLast();
+        _redoStack.add(image);
       });
+
+      // Обновление состояния слоя
+      final currentLayer = widget.project.layers.last;
+      _projectNotifier.undoState(currentLayer.id);
     }
   }
 
   void _redo() {
     if (_redoStack.isNotEmpty) {
       setState(() {
-        _paths.add(_redoStack.removeLast());
+        final image = _redoStack.removeLast();
+        _paths.add(image);
       });
+
+      // Обновление состояния слоя
+      final currentLayer = widget.project.layers.last;
+      _projectNotifier.redoState(currentLayer.id);
     }
   }
 }
@@ -565,195 +580,5 @@ class MenuButton extends StatelessWidget {
       borderRadius: BorderRadius.circular(30),
       child: child,
     );
-  }
-}
-
-class DrawingPainter extends CustomPainter {
-  DrawingPainter(this.paths, this.currentPath);
-
-  final List<ui.Image> paths;
-  final DrawingPath? currentPath;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    canvas.saveLayer(Offset.zero & size, Paint());
-    for (var path in paths) {
-      canvas.drawImage(path, Offset.zero, Paint());
-    }
-    if (currentPath != null) {
-      _drawPath(canvas, currentPath!);
-    }
-    canvas.restore();
-  }
-
-  void _drawPath(Canvas canvas, DrawingPath drawingPath) {
-    final paint = Paint()
-      ..color = drawingPath.color.withOpacity(1 - drawingPath.brush.opacityDiff)
-      ..strokeCap = drawingPath.brush.strokeCap
-      ..strokeJoin = drawingPath.brush.strokeJoin
-      ..strokeWidth = drawingPath.width
-      ..style = PaintingStyle.stroke
-      ..blendMode = drawingPath.brush.blendMode
-      ..colorFilter = drawingPath.brush.brush != null
-          ? ColorFilter.mode(
-              drawingPath.color,
-              BlendMode.srcATop,
-            )
-          : null;
-
-    var path = Path();
-    if (drawingPath.points.length < 2) {
-      return;
-    }
-
-    if (drawingPath.brush.pathEffect != null) {
-      _drawPathEffect(canvas, drawingPath, paint);
-    } else if (drawingPath.brush.brush != null) {
-      _drawTexturedPath(canvas, path, paint, drawingPath);
-    } else {
-      _drawSimplePath(canvas, drawingPath, paint);
-    }
-  }
-
-  void _drawPathEffect(Canvas canvas, DrawingPath drawingPath, Paint paint) {
-    for (int i = 1; i < drawingPath.points.length; i++) {
-      final p0 = drawingPath.points[i - 1];
-      final p1 = drawingPath.points[i];
-
-      p0.offset.calculateDensityOffset(
-        p1.offset,
-        drawingPath.brush.densityOffset,
-        (offset) {
-          final effect = drawingPath.brush.pathEffect!(
-            p1.randomSize ?? drawingPath.width,
-            offset,
-            p1.randomOffset ?? const Offset(0, 0),
-          );
-
-          paint.strokeWidth = p1.randomSize ?? drawingPath.width;
-
-          canvas.drawPath(effect, paint);
-        },
-      );
-    }
-  }
-
-  void _drawSimplePath(Canvas canvas, DrawingPath drawingPath, Paint paint) {
-    final path = Path();
-    path.moveTo(
-      drawingPath.points.first.offset.dx,
-      drawingPath.points.first.offset.dy,
-    );
-
-    for (int i = 1; i < drawingPath.points.length; i++) {
-      final p0 = drawingPath.points[i - 1];
-      final p1 = drawingPath.points[i];
-
-      path.quadraticBezierTo(
-        p0.offset.dx,
-        p0.offset.dy,
-        (p0.offset.dx + p1.offset.dx) / 2,
-        (p0.offset.dy + p1.offset.dy) / 2,
-      );
-    }
-
-    canvas.drawPath(path, paint);
-  }
-
-  void _drawTexturedPath(
-    Canvas canvas,
-    Path path,
-    Paint paint,
-    DrawingPath drawingPath,
-  ) {
-    final path = Path();
-    path.moveTo(
-      drawingPath.points.first.offset.dx,
-      drawingPath.points.first.offset.dy,
-    );
-
-    for (int i = 1; i < drawingPath.points.length; i++) {
-      final p0 = drawingPath.points[i - 1];
-      final p1 = drawingPath.points[i];
-
-      path.quadraticBezierTo(
-        p0.offset.dx,
-        p0.offset.dy,
-        (p0.offset.dx + p1.offset.dx) / 2,
-        (p0.offset.dy + p1.offset.dy) / 2,
-      );
-    }
-
-    final pathMetrics = path.computeMetrics();
-    final brush = drawingPath.brush.brush!;
-    final src = Rect.fromLTWH(
-      0,
-      0,
-      brush.width.toDouble(),
-      brush.height.toDouble(),
-    );
-
-    for (final metric in pathMetrics) {
-      var distance = 0.0;
-
-      while (distance < metric.length) {
-        final tangent = metric.getTangentForOffset(distance)!;
-        final point = tangent.position;
-
-        final radius = (drawingPath.width - 2);
-        final dst = Rect.fromCircle(center: point, radius: radius);
-
-        canvas.save();
-        canvas.translate(point.dx, point.dy);
-        canvas.rotate(tangent.angle);
-        canvas.translate(-point.dx, -point.dy);
-        canvas.drawImageRect(brush, src, dst, paint);
-        canvas.restore();
-
-        distance += (drawingPath.brush.useBrushWidthDensity
-            ? drawingPath.width + drawingPath.brush.densityOffset
-            : drawingPath.brush.densityOffset);
-      }
-    }
-  }
-
-  @override
-  bool shouldRepaint(DrawingPainter oldDelegate) => true;
-}
-
-extension OffsetExtension on Offset {
-  Offset operator -(Offset other) => Offset(dx - other.dx, dy - other.dy);
-  Offset operator +(Offset other) => Offset(dx + other.dx, dy + other.dy);
-  Offset operator /(double value) => Offset(dx / value, dy / value);
-  Offset operator *(double value) => Offset(dx * value, dy * value);
-
-  double distanceTo(Offset other) =>
-      (dx - other.dx).abs() + (dy - other.dy).abs();
-
-  void calculateDensityOffset(
-    Offset other,
-    double density,
-    Function(Offset) callback,
-  ) {
-    final difference = other - this;
-    final distance = difference.distance;
-
-    if (distance == 0) {
-      // Points are the same; invoke callback once.
-      callback(this);
-      return;
-    }
-
-    final direction = difference / distance;
-
-    for (double i = 0; i <= distance; i += density) {
-      final point = this + direction * i;
-      callback(point);
-    }
-
-    // Ensure the last point is included.
-    if ((distance % density) != 0) {
-      callback(other);
-    }
   }
 }

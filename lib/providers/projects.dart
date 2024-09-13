@@ -30,6 +30,15 @@ class Projects extends _$Projects {
     await database.saveProject(project);
     refresh();
   }
+
+  Future<void> updateProject(ProjectModel project) async {
+    state = AsyncValue.data(state.valueOrNull!.map((p) {
+      if (p.id == project.id) {
+        return project;
+      }
+      return p;
+    }).toList());
+  }
 }
 
 @riverpod
@@ -81,6 +90,7 @@ class Project extends _$Project {
   void updateProject(ProjectModel updatedProject) {
     state = AsyncValue.data(updatedProject);
     saveProject();
+    ref.read(projectsProvider.notifier).updateProject(updatedProject);
   }
 
   // Update methods
@@ -134,5 +144,93 @@ class Project extends _$Project {
       final updatedProject = project.copyWith(cachedImageUrl: file.path);
       updateProject(updatedProject);
     }
+  }
+
+  Future<void> addNewState(String layer, Image image) async {
+    final project = state.valueOrNull;
+    if (project != null) {
+      final layerIndex = project.layers.indexWhere((l) => l.id == layer);
+      if (layerIndex != -1) {
+        final layer = project.layers[layerIndex];
+        final newStates = List<LayerStateModel>.from(layer.prevStates);
+        final name = '${layer.id}_${newStates.length + 1}';
+        final path = await _saveImage(image, name);
+        final newState = LayerStateModel(imagePath: path);
+        newStates.add(newState);
+
+        final updatedLayer = layer.copyWith(
+          prevStates: newStates,
+          redoStates: [],
+        );
+        final updatedLayers = List<LayerModel>.from(project.layers);
+        updatedLayers[layerIndex] = updatedLayer;
+
+        final updatedProject = project.copyWith(layers: updatedLayers);
+        updateProject(updatedProject);
+      }
+    }
+  }
+
+  Future<void> undoState(String layer) async {
+    final project = state.valueOrNull;
+    if (project != null) {
+      final layerIndex = project.layers.indexWhere((l) => l.id == layer);
+      if (layerIndex != -1) {
+        final layer = project.layers[layerIndex];
+        final newStates = List<LayerStateModel>.from(layer.prevStates);
+        final redoStates = List<LayerStateModel>.from(layer.redoStates);
+
+        if (newStates.isNotEmpty) {
+          final state = newStates.removeLast();
+          redoStates.add(state);
+
+          final updatedLayer = layer.copyWith(
+            prevStates: newStates,
+            redoStates: redoStates,
+          );
+          final updatedLayers = List<LayerModel>.from(project.layers);
+          updatedLayers[layerIndex] = updatedLayer;
+
+          final updatedProject = project.copyWith(layers: updatedLayers);
+          updateProject(updatedProject);
+        }
+      }
+    }
+  }
+
+  Future<void> redoState(String layer) async {
+    final project = state.valueOrNull;
+    if (project != null) {
+      final layerIndex = project.layers.indexWhere((l) => l.id == layer);
+      if (layerIndex != -1) {
+        final layer = project.layers[layerIndex];
+        final newStates = List<LayerStateModel>.from(layer.prevStates);
+        final redoStates = List<LayerStateModel>.from(layer.redoStates);
+
+        if (redoStates.isNotEmpty) {
+          final state = redoStates.removeLast();
+          newStates.add(state);
+
+          final updatedLayer = layer.copyWith(
+            prevStates: newStates,
+            redoStates: redoStates,
+          );
+          final updatedLayers = List<LayerModel>.from(project.layers);
+          updatedLayers[layerIndex] = updatedLayer;
+
+          final updatedProject = project.copyWith(layers: updatedLayers);
+          updateProject(updatedProject);
+        }
+      }
+    }
+  }
+
+  Future<String> _saveImage(Image image, String name) async {
+    final directory = await getApplicationDocumentsDirectory();
+    final file = File('${directory.path}/$name.png');
+    final data = await image.toByteData(format: ImageByteFormat.png);
+    final bytes = data!.buffer.asUint8List();
+    await file.writeAsBytes(bytes);
+    return file.path;
   }
 }
