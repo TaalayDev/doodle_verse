@@ -3,11 +3,9 @@ import 'dart:math';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
-import 'package:path_provider/path_provider.dart';
 
 import '../../data.dart';
 import '../../data/models/drawing_path.dart';
@@ -64,6 +62,54 @@ class DrawBody extends StatefulWidget {
 }
 
 class _DrawBodyState extends State<DrawBody> {
+  late final _brushes = [
+    widget.tools.pencil,
+    widget.tools.defaultBrush,
+    widget.tools.marker,
+    widget.tools.watercolor,
+    widget.tools.crayon,
+    widget.tools.sprayPaint,
+    widget.tools.neon,
+    widget.tools.charcoal,
+    widget.tools.sketchy,
+    widget.tools.star,
+    widget.tools.heart,
+    widget.tools.bubbleBrush,
+    widget.tools.glitterBrush,
+    widget.tools.rainbowBrush,
+    widget.tools.sparkleBrush,
+    widget.tools.leafBrush,
+    widget.tools.grassBrush,
+    widget.tools.pixelBrush,
+    widget.tools.glowBrush,
+    widget.tools.mosaicBrush,
+    widget.tools.splatBrush,
+    widget.tools.calligraphyBrush,
+    widget.tools.electricBrush,
+    widget.tools.furBrush,
+    widget.tools.galaxyBrush,
+    widget.tools.fractalBrush,
+    widget.tools.fireBrush,
+    widget.tools.snowflakeBrush,
+    widget.tools.cloudBrush,
+    widget.tools.lightningBrush,
+    widget.tools.featherBrush,
+    widget.tools.galaxyBrush1,
+    widget.tools.confettiBrush,
+    widget.tools.metallicBrush,
+    widget.tools.embroideryBrush,
+    widget.tools.stainedGlassBrush,
+    widget.tools.ribbonBrush,
+    widget.tools.particleFieldBrush,
+    widget.tools.waveInterferenceBrush,
+    widget.tools.voronoiBrush,
+    widget.tools.chaosTheoryBrush,
+    widget.tools.inkBrush,
+    widget.tools.fireworksBrush,
+    widget.tools.embossBrush,
+    widget.tools.glassBrush
+  ];
+
   List<ui.Image> _redoStack = [];
   List<ui.Image> _paths = [];
   DrawingPath? _currentPath;
@@ -450,91 +496,45 @@ class _DrawBodyState extends State<DrawBody> {
       builder: (context) {
         return Container(
           padding: const EdgeInsets.all(20),
-          child: GridView.count(
-            crossAxisCount: 4,
-            crossAxisSpacing: 10,
-            mainAxisSpacing: 10,
+          child: GridView.builder(
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 3,
+              crossAxisSpacing: 10,
+              mainAxisSpacing: 10,
+              childAspectRatio: 1,
+            ),
+            itemCount: _brushes.length,
             shrinkWrap: true,
-            children: [
-              for (var brush in [
-                widget.tools.pencil,
-                widget.tools.defaultBrush,
-                widget.tools.marker,
-                widget.tools.watercolor,
-                widget.tools.crayon,
-                widget.tools.sprayPaint,
-                widget.tools.neon,
-                widget.tools.charcoal,
-                widget.tools.sketchy,
-                widget.tools.star,
-                widget.tools.heart,
-                widget.tools.bubbleBrush,
-                widget.tools.glitterBrush,
-                widget.tools.rainbowBrush,
-                widget.tools.sparkleBrush,
-                widget.tools.leafBrush,
-                widget.tools.grassBrush,
-                widget.tools.pixelBrush,
-                widget.tools.glowBrush,
-                widget.tools.mosaicBrush,
-                widget.tools.splatBrush,
-                widget.tools.calligraphyBrush,
-                widget.tools.electricBrush,
-                widget.tools.furBrush,
-                widget.tools.galaxyBrush,
-                widget.tools.fractalBrush,
-                widget.tools.fireBrush,
-                widget.tools.snowflakeBrush,
-                widget.tools.cloudBrush,
-                widget.tools.lightningBrush,
-                widget.tools.featherBrush,
-                widget.tools.galaxyBrush1,
-                widget.tools.confettiBrush,
-                widget.tools.metallicBrush,
-                widget.tools.embroideryBrush,
-                widget.tools.stainedGlassBrush,
-                widget.tools.ribbonBrush,
-                widget.tools.particleFieldBrush,
-                widget.tools.waveInterferenceBrush,
-                widget.tools.voronoiBrush,
-                widget.tools.chaosTheoryBrush,
-                widget.tools.inkBrush,
-                widget.tools.fireworksBrush,
-                widget.tools.embossBrush,
-                widget.tools.glassBrush
-              ])
-                MaterialInkWell(
-                  onTap: () {
-                    _setBrush(brush);
-                    Navigator.of(context).pop();
-                  },
-                  padding: const EdgeInsets.all(10),
-                  borderRadius: BorderRadius.circular(30),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        _getBrushIcon(brush),
-                        size: 26,
+            itemBuilder: (context, index) {
+              final brush = _brushes[index];
+              return GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _brush = brush;
+                  });
+                  Navigator.pop(context);
+                },
+                child: Column(
+                  children: [
+                    BrushTexturePreview(
+                      brush: brush,
+                      color: Colors.black,
+                      isSelected: _brush.id == brush.id,
+                    ),
+                    const SizedBox(height: 5),
+                    Text(
+                      brush.name,
+                      style: TextStyle(
+                        fontSize: 12,
                         color: _brush.id == brush.id
                             ? Theme.of(context).primaryColor
-                            : null,
+                            : Colors.black,
                       ),
-                      const SizedBox(height: 5),
-                      FittedBox(
-                        child: Text(
-                          brush.name,
-                          style: TextStyle(
-                            color: _brush.id == brush.id
-                                ? Theme.of(context).primaryColor
-                                : null,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-            ],
+              );
+            },
           ),
         );
       },
