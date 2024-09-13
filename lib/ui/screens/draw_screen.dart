@@ -79,8 +79,8 @@ class DrawBody extends StatefulWidget {
 }
 
 class _DrawBodyState extends State<DrawBody> {
-  List<DrawingPath> _paths = [];
-  List<DrawingPath> _redoPaths = [];
+  List<ui.Image> _redoStack = [];
+  List<ui.Image> _paths = [];
   DrawingPath? _currentPath;
 
   late BrushData _brush = widget.tools.pencil;
@@ -100,33 +100,15 @@ class _DrawBodyState extends State<DrawBody> {
   void _loadProject() {
     setState(() {
       _paths = [];
-
-      _redoPaths = [];
     });
   }
 
-  BrushData _getBrushById(String brushId) {
-    switch (brushId) {
-      case 'pencil':
-        return widget.tools.pencil;
-      case 'marker':
-        return widget.tools.marker;
-      case 'watercolor':
-        return widget.tools.watercolor;
-      // Add cases for all other brush types
-      default:
-        return widget.tools.defaultBrush;
-    }
-  }
-
   void _saveProject() {
-    // Convert paths to layers
     final layer = LayerModel(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       name: 'Drawing Layer',
     );
 
-    // Update project with new layer
     final updatedLayers = [...widget.project.layers, layer];
     _projectNotifier.updateLayers(updatedLayers);
 
@@ -177,7 +159,7 @@ class _DrawBodyState extends State<DrawBody> {
               onPressed: _redo,
               child: Icon(
                 Feather.rotate_cw,
-                color: _redoPaths.isEmpty ? Colors.grey : null,
+                color: _redoStack.isEmpty ? Colors.grey : null,
               ),
             ),
           ],
@@ -465,7 +447,6 @@ class _DrawBodyState extends State<DrawBody> {
           )
         ],
       );
-      _paths.add(_currentPath!);
     });
   }
 
@@ -493,10 +474,30 @@ class _DrawBodyState extends State<DrawBody> {
     });
   }
 
-  void _onPanEnd(DragEndDetails details) {
+  void _onPanEnd(DragEndDetails details) async {
+    _renderPathsToImage(_currentPath);
+  }
+
+  void _renderPathsToImage(DrawingPath? path) async {
+    final recorder = ui.PictureRecorder();
+    final canvas = Canvas(recorder);
+
+    final painter = DrawingPainter([], path);
+
+    final size = MediaQuery.of(context).size;
+    painter.paint(canvas, size);
+
+    final picture = recorder.endRecording();
+
+    final image = await picture.toImage(
+      size.width.toInt(),
+      size.height.toInt(),
+    );
+
     setState(() {
+      _paths.add(image);
       _currentPath = null;
-      _redoPaths.clear();
+      _redoStack.clear();
     });
   }
 
@@ -532,15 +533,15 @@ class _DrawBodyState extends State<DrawBody> {
   void _undo() {
     if (_paths.isNotEmpty) {
       setState(() {
-        _redoPaths.add(_paths.removeLast());
+        _redoStack.add(_paths.removeLast());
       });
     }
   }
 
   void _redo() {
-    if (_redoPaths.isNotEmpty) {
+    if (_redoStack.isNotEmpty) {
       setState(() {
-        _paths.add(_redoPaths.removeLast());
+        _paths.add(_redoStack.removeLast());
       });
     }
   }
@@ -570,14 +571,14 @@ class MenuButton extends StatelessWidget {
 class DrawingPainter extends CustomPainter {
   DrawingPainter(this.paths, this.currentPath);
 
-  final List<DrawingPath> paths;
+  final List<ui.Image> paths;
   final DrawingPath? currentPath;
 
   @override
   void paint(Canvas canvas, Size size) {
     canvas.saveLayer(Offset.zero & size, Paint());
     for (var path in paths) {
-      _drawPath(canvas, path);
+      canvas.drawImage(path, Offset.zero, Paint());
     }
     if (currentPath != null) {
       _drawPath(canvas, currentPath!);
@@ -734,11 +735,25 @@ extension OffsetExtension on Offset {
     double density,
     Function(Offset) callback,
   ) {
-    final distance = distanceTo(other);
-    final direction = (other - this) / distance;
+    final difference = other - this;
+    final distance = difference.distance;
 
-    for (double i = 0; i < distance; i += density) {
-      callback(this + direction * i);
+    if (distance == 0) {
+      // Points are the same; invoke callback once.
+      callback(this);
+      return;
+    }
+
+    final direction = difference / distance;
+
+    for (double i = 0; i <= distance; i += density) {
+      final point = this + direction * i;
+      callback(point);
+    }
+
+    // Ensure the last point is included.
+    if ((distance % density) != 0) {
+      callback(other);
     }
   }
 }

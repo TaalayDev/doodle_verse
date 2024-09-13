@@ -31,6 +31,11 @@ class ProjectModel with _$ProjectModel {
       cachedImageUrl: json['cachedImageUrl'],
       createdAt: json['createdAt'],
       lastModified: json['lastModified'],
+      canvasSize: Size(
+        json['canvasWidth'],
+        json['canvasHeight'],
+      ),
+      zoomLevel: json['zoomLevel'],
     );
   }
 
@@ -60,7 +65,7 @@ class LayerModel with _$LayerModel {
     @Default(false) bool isLocked,
     @Default(false) bool isBackground,
     @Default(1.0) double opacity,
-    String? cachedImageUrl,
+    String? imagePath, // File path to the layer image
     @Default([]) final List<LayerStateModel> prevStates,
     @Default([]) final List<LayerStateModel> redoStates,
   }) = _LayerModel;
@@ -73,12 +78,12 @@ class LayerModel with _$LayerModel {
       isLocked: json['isLocked'] == 1,
       isBackground: json['isBackground'] == 1,
       opacity: json['opacity'],
-      cachedImageUrl: json['cachedImageUrl'],
+      imagePath: json['imagePath'],
       prevStates: (json['prevLayerStates'] as List)
-          .map((stateJson) => LayerStateModel.fromMap(stateJson))
+          .map((stateJson) => LayerStateModel.fromJson(stateJson))
           .toList(),
       redoStates: (json['redoLayerStates'] as List)
-          .map((stateJson) => LayerStateModel.fromMap(stateJson))
+          .map((stateJson) => LayerStateModel.fromJson(stateJson))
           .toList(),
     );
   }
@@ -91,7 +96,7 @@ class LayerModel with _$LayerModel {
       'isLocked': isLocked ? 1 : 0,
       'isBackground': isBackground ? 1 : 0,
       'opacity': opacity,
-      'cachedImageUrl': cachedImageUrl,
+      'imagePath': imagePath,
     };
   }
 }
@@ -100,21 +105,18 @@ class LayerModel with _$LayerModel {
 class LayerStateModel with _$LayerStateModel {
   const LayerStateModel._();
   const factory LayerStateModel({
-    required String cachedBitmapFileName,
-    required double opacity,
+    required String imagePath,
   }) = _LayerStateModel;
 
-  static LayerStateModel fromMap(Map<String, dynamic> json) {
+  factory LayerStateModel.fromJson(Map<String, dynamic> json) {
     return LayerStateModel(
-      cachedBitmapFileName: json['cachedBitmapFileName'],
-      opacity: json['opacity'],
+      imagePath: json['imagePath'],
     );
   }
 
-  Map<String, dynamic> toMap() {
+  Map<String, dynamic> toJson() {
     return {
-      'cachedBitmapFileName': cachedBitmapFileName,
-      'opacity': opacity,
+      'imagePath': imagePath,
     };
   }
 }

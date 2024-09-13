@@ -6,7 +6,7 @@ part of 'common.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$toolsHash() => r'ab1bc3c38a3da74a1ebaa58b81d9e5d7b6930a1e';
+String _$toolsHash() => r'f7afaefd9e63dd9347314b8a3b9ce795ba60cb13';
 
 /// See also [Tools].
 @ProviderFor(Tools)

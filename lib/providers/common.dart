@@ -217,36 +217,6 @@ class Tools extends _$Tools {
     );
   }
 
-  Path _createStarPath(Offset center, double size) {
-    final path = Path();
-    // Define the star parameters
-    final int numberOfPoints = 5;
-    final double radiusOuter = size;
-    final double radiusInner = size / 2;
-    final double centerX = center.dx;
-    final double centerY = center.dy;
-
-    // Draw the star
-    double angle = (2 * pi) / numberOfPoints;
-    for (int i = 0; i < numberOfPoints; i++) {
-      double outerX = centerX + radiusOuter * cos(i * angle - pi / 2);
-      double outerY = centerY + radiusOuter * sin(i * angle - pi / 2);
-
-      double innerX = centerX + radiusInner * cos((i + 0.5) * angle - pi / 2);
-      double innerY = centerY + radiusInner * sin((i + 0.5) * angle - pi / 2);
-
-      if (i == 0) {
-        path.moveTo(outerX, outerY);
-      } else {
-        path.lineTo(outerX, outerY);
-      }
-      path.lineTo(innerX, innerY);
-    }
-
-    path.close();
-    return path;
-  }
-
   Future<ui.Image?> _loadUIImage(String asset) async {
     final data = await rootBundle.load(asset);
     final bytes = data.buffer.asUint8List();

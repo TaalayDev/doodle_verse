@@ -330,7 +330,8 @@ mixin _$LayerModel {
   bool get isLocked => throw _privateConstructorUsedError;
   bool get isBackground => throw _privateConstructorUsedError;
   double get opacity => throw _privateConstructorUsedError;
-  String? get cachedImageUrl => throw _privateConstructorUsedError;
+  String? get imagePath =>
+      throw _privateConstructorUsedError; // File path to the layer image
   List<LayerStateModel> get prevStates => throw _privateConstructorUsedError;
   List<LayerStateModel> get redoStates => throw _privateConstructorUsedError;
 
@@ -352,7 +353,7 @@ abstract class $LayerModelCopyWith<$Res> {
       bool isLocked,
       bool isBackground,
       double opacity,
-      String? cachedImageUrl,
+      String? imagePath,
       List<LayerStateModel> prevStates,
       List<LayerStateModel> redoStates});
 }
@@ -376,7 +377,7 @@ class _$LayerModelCopyWithImpl<$Res, $Val extends LayerModel>
     Object? isLocked = null,
     Object? isBackground = null,
     Object? opacity = null,
-    Object? cachedImageUrl = freezed,
+    Object? imagePath = freezed,
     Object? prevStates = null,
     Object? redoStates = null,
   }) {
@@ -405,9 +406,9 @@ class _$LayerModelCopyWithImpl<$Res, $Val extends LayerModel>
           ? _value.opacity
           : opacity // ignore: cast_nullable_to_non_nullable
               as double,
-      cachedImageUrl: freezed == cachedImageUrl
-          ? _value.cachedImageUrl
-          : cachedImageUrl // ignore: cast_nullable_to_non_nullable
+      imagePath: freezed == imagePath
+          ? _value.imagePath
+          : imagePath // ignore: cast_nullable_to_non_nullable
               as String?,
       prevStates: null == prevStates
           ? _value.prevStates
@@ -436,7 +437,7 @@ abstract class _$$LayerModelImplCopyWith<$Res>
       bool isLocked,
       bool isBackground,
       double opacity,
-      String? cachedImageUrl,
+      String? imagePath,
       List<LayerStateModel> prevStates,
       List<LayerStateModel> redoStates});
 }
@@ -458,7 +459,7 @@ class __$$LayerModelImplCopyWithImpl<$Res>
     Object? isLocked = null,
     Object? isBackground = null,
     Object? opacity = null,
-    Object? cachedImageUrl = freezed,
+    Object? imagePath = freezed,
     Object? prevStates = null,
     Object? redoStates = null,
   }) {
@@ -487,9 +488,9 @@ class __$$LayerModelImplCopyWithImpl<$Res>
           ? _value.opacity
           : opacity // ignore: cast_nullable_to_non_nullable
               as double,
-      cachedImageUrl: freezed == cachedImageUrl
-          ? _value.cachedImageUrl
-          : cachedImageUrl // ignore: cast_nullable_to_non_nullable
+      imagePath: freezed == imagePath
+          ? _value.imagePath
+          : imagePath // ignore: cast_nullable_to_non_nullable
               as String?,
       prevStates: null == prevStates
           ? _value._prevStates
@@ -513,7 +514,7 @@ class _$LayerModelImpl extends _LayerModel {
       this.isLocked = false,
       this.isBackground = false,
       this.opacity = 1.0,
-      this.cachedImageUrl,
+      this.imagePath,
       final List<LayerStateModel> prevStates = const [],
       final List<LayerStateModel> redoStates = const []})
       : _prevStates = prevStates,
@@ -537,8 +538,10 @@ class _$LayerModelImpl extends _LayerModel {
   @JsonKey()
   final double opacity;
   @override
-  final String? cachedImageUrl;
+  final String? imagePath;
+// File path to the layer image
   final List<LayerStateModel> _prevStates;
+// File path to the layer image
   @override
   @JsonKey()
   List<LayerStateModel> get prevStates {
@@ -558,7 +561,7 @@ class _$LayerModelImpl extends _LayerModel {
 
   @override
   String toString() {
-    return 'LayerModel(id: $id, name: $name, isVisible: $isVisible, isLocked: $isLocked, isBackground: $isBackground, opacity: $opacity, cachedImageUrl: $cachedImageUrl, prevStates: $prevStates, redoStates: $redoStates)';
+    return 'LayerModel(id: $id, name: $name, isVisible: $isVisible, isLocked: $isLocked, isBackground: $isBackground, opacity: $opacity, imagePath: $imagePath, prevStates: $prevStates, redoStates: $redoStates)';
   }
 
   @override
@@ -575,8 +578,8 @@ class _$LayerModelImpl extends _LayerModel {
             (identical(other.isBackground, isBackground) ||
                 other.isBackground == isBackground) &&
             (identical(other.opacity, opacity) || other.opacity == opacity) &&
-            (identical(other.cachedImageUrl, cachedImageUrl) ||
-                other.cachedImageUrl == cachedImageUrl) &&
+            (identical(other.imagePath, imagePath) ||
+                other.imagePath == imagePath) &&
             const DeepCollectionEquality()
                 .equals(other._prevStates, _prevStates) &&
             const DeepCollectionEquality()
@@ -592,7 +595,7 @@ class _$LayerModelImpl extends _LayerModel {
       isLocked,
       isBackground,
       opacity,
-      cachedImageUrl,
+      imagePath,
       const DeepCollectionEquality().hash(_prevStates),
       const DeepCollectionEquality().hash(_redoStates));
 
@@ -611,7 +614,7 @@ abstract class _LayerModel extends LayerModel {
       final bool isLocked,
       final bool isBackground,
       final double opacity,
-      final String? cachedImageUrl,
+      final String? imagePath,
       final List<LayerStateModel> prevStates,
       final List<LayerStateModel> redoStates}) = _$LayerModelImpl;
   const _LayerModel._() : super._();
@@ -629,8 +632,8 @@ abstract class _LayerModel extends LayerModel {
   @override
   double get opacity;
   @override
-  String? get cachedImageUrl;
-  @override
+  String? get imagePath;
+  @override // File path to the layer image
   List<LayerStateModel> get prevStates;
   @override
   List<LayerStateModel> get redoStates;
@@ -642,8 +645,7 @@ abstract class _LayerModel extends LayerModel {
 
 /// @nodoc
 mixin _$LayerStateModel {
-  String get cachedBitmapFileName => throw _privateConstructorUsedError;
-  double get opacity => throw _privateConstructorUsedError;
+  String get imagePath => throw _privateConstructorUsedError;
 
   @JsonKey(ignore: true)
   $LayerStateModelCopyWith<LayerStateModel> get copyWith =>
@@ -656,7 +658,7 @@ abstract class $LayerStateModelCopyWith<$Res> {
           LayerStateModel value, $Res Function(LayerStateModel) then) =
       _$LayerStateModelCopyWithImpl<$Res, LayerStateModel>;
   @useResult
-  $Res call({String cachedBitmapFileName, double opacity});
+  $Res call({String imagePath});
 }
 
 /// @nodoc
@@ -672,18 +674,13 @@ class _$LayerStateModelCopyWithImpl<$Res, $Val extends LayerStateModel>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? cachedBitmapFileName = null,
-    Object? opacity = null,
+    Object? imagePath = null,
   }) {
     return _then(_value.copyWith(
-      cachedBitmapFileName: null == cachedBitmapFileName
-          ? _value.cachedBitmapFileName
-          : cachedBitmapFileName // ignore: cast_nullable_to_non_nullable
+      imagePath: null == imagePath
+          ? _value.imagePath
+          : imagePath // ignore: cast_nullable_to_non_nullable
               as String,
-      opacity: null == opacity
-          ? _value.opacity
-          : opacity // ignore: cast_nullable_to_non_nullable
-              as double,
     ) as $Val);
   }
 }
@@ -696,7 +693,7 @@ abstract class _$$LayerStateModelImplCopyWith<$Res>
       __$$LayerStateModelImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({String cachedBitmapFileName, double opacity});
+  $Res call({String imagePath});
 }
 
 /// @nodoc
@@ -710,18 +707,13 @@ class __$$LayerStateModelImplCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? cachedBitmapFileName = null,
-    Object? opacity = null,
+    Object? imagePath = null,
   }) {
     return _then(_$LayerStateModelImpl(
-      cachedBitmapFileName: null == cachedBitmapFileName
-          ? _value.cachedBitmapFileName
-          : cachedBitmapFileName // ignore: cast_nullable_to_non_nullable
+      imagePath: null == imagePath
+          ? _value.imagePath
+          : imagePath // ignore: cast_nullable_to_non_nullable
               as String,
-      opacity: null == opacity
-          ? _value.opacity
-          : opacity // ignore: cast_nullable_to_non_nullable
-              as double,
     ));
   }
 }
@@ -729,18 +721,14 @@ class __$$LayerStateModelImplCopyWithImpl<$Res>
 /// @nodoc
 
 class _$LayerStateModelImpl extends _LayerStateModel {
-  const _$LayerStateModelImpl(
-      {required this.cachedBitmapFileName, required this.opacity})
-      : super._();
+  const _$LayerStateModelImpl({required this.imagePath}) : super._();
 
   @override
-  final String cachedBitmapFileName;
-  @override
-  final double opacity;
+  final String imagePath;
 
   @override
   String toString() {
-    return 'LayerStateModel(cachedBitmapFileName: $cachedBitmapFileName, opacity: $opacity)';
+    return 'LayerStateModel(imagePath: $imagePath)';
   }
 
   @override
@@ -748,13 +736,12 @@ class _$LayerStateModelImpl extends _LayerStateModel {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$LayerStateModelImpl &&
-            (identical(other.cachedBitmapFileName, cachedBitmapFileName) ||
-                other.cachedBitmapFileName == cachedBitmapFileName) &&
-            (identical(other.opacity, opacity) || other.opacity == opacity));
+            (identical(other.imagePath, imagePath) ||
+                other.imagePath == imagePath));
   }
 
   @override
-  int get hashCode => Object.hash(runtimeType, cachedBitmapFileName, opacity);
+  int get hashCode => Object.hash(runtimeType, imagePath);
 
   @JsonKey(ignore: true)
   @override
@@ -765,15 +752,12 @@ class _$LayerStateModelImpl extends _LayerStateModel {
 }
 
 abstract class _LayerStateModel extends LayerStateModel {
-  const factory _LayerStateModel(
-      {required final String cachedBitmapFileName,
-      required final double opacity}) = _$LayerStateModelImpl;
+  const factory _LayerStateModel({required final String imagePath}) =
+      _$LayerStateModelImpl;
   const _LayerStateModel._() : super._();
 
   @override
-  String get cachedBitmapFileName;
-  @override
-  double get opacity;
+  String get imagePath;
   @override
   @JsonKey(ignore: true)
   _$$LayerStateModelImplCopyWith<_$LayerStateModelImpl> get copyWith =>

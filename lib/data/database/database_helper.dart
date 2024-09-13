@@ -11,7 +11,7 @@ class DatabaseHelper {
 
   Future<Database> get database async {
     if (_database != null) return _database!;
-    _database = await _initDB('doodleVerse.db');
+    _database = await _initDB('_doodleVerse.db');
     return _database!;
   }
 
@@ -29,7 +29,12 @@ class DatabaseHelper {
         name TEXT,
         cachedImageUrl TEXT,
         createdAt INTEGER,
-        lastModified INTEGER
+        lastModified INTEGER,
+        canvasWidth REAL,
+        canvasHeight REAL,
+        zoomLevel REAL,
+        viewportX REAL,
+        viewportY REAL
       )
     ''');
 
@@ -42,7 +47,7 @@ class DatabaseHelper {
         isLocked INTEGER,
         isBackground INTEGER,
         opacity REAL,
-        cachedImageUrl TEXT,
+        imagePath TEXT,
         FOREIGN KEY (projectId) REFERENCES projects (id) ON DELETE CASCADE
       )
     ''');
@@ -51,110 +56,179 @@ class DatabaseHelper {
       CREATE TABLE layer_states(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         layerId TEXT,
-        cachedImageUrl TEXT,
-        opacity REAL,
+        imagePath TEXT,
         isUndo INTEGER,
         FOREIGN KEY (layerId) REFERENCES layers (id) ON DELETE CASCADE
       )
     ''');
   }
 
-  Future<String> insertProject(ProjectModel project) async {
+  // Loading a project
+  Future<ProjectModel?> loadProject(String id) async {
     final db = await instance.database;
-    final data = project.toJson();
-    data.remove('layers');
-    final id = await db.insert('projects', data);
 
-    await Future.wait(
-      project.layers.map((layer) => insertLayer(layer, project.id)),
+    final projectMaps = await db.query(
+      'projects',
+      where: 'id = ?',
+      whereArgs: [id],
     );
 
-    return project.id;
-  }
+    if (projectMaps.isNotEmpty) {
+      final projectMap = projectMaps.first;
+      final layers = await loadLayers(id);
 
-  Future<void> insertLayer(LayerModel layer, String projectId) async {
-    final db = await instance.database;
-    final layerJson = layer.toMap();
-
-    layerJson['projectId'] = projectId;
-    await db.insert('layers', layerJson);
-    await Future.wait([
-      ...layer.prevStates
-          .map((state) => insertLayerState(state, layer.id, true)),
-      ...layer.redoStates
-          .map((state) => insertLayerState(state, layer.id, false)),
-    ]);
-  }
-
-  Future<void> insertLayerState(
-    LayerStateModel state,
-    String layerId,
-    bool isUndo,
-  ) async {
-    final db = await instance.database;
-    final stateJson = state.toMap();
-    stateJson['layerId'] = layerId;
-    stateJson['isUndo'] = isUndo ? 1 : 0;
-    await db.insert('layer_states', stateJson);
-  }
-
-  Future<ProjectModel?> getProject(String id) async {
-    final db = await instance.database;
-    final maps = List<Map<String, dynamic>>.from(
-      await db.query('projects', where: 'id = ?', whereArgs: [id]),
-    );
-
-    if (maps.isNotEmpty) {
-      final projectJson = maps.first;
-      final layers = await getLayers(id);
       return ProjectModel.fromJson({
-        ...projectJson,
+        ...projectMap,
         'layers': layers
             .map((l) => {
                   ...l.toMap(),
                   'prevLayerStates':
-                      l.prevStates.map((s) => s.toMap()).toList(),
+                      l.prevStates.map((s) => s.toJson()).toList(),
                   'redoLayerStates':
-                      l.redoStates.map((s) => s.toMap()).toList(),
+                      l.redoStates.map((s) => s.toJson()).toList(),
                 })
             .toList(),
       });
     }
+
     return null;
   }
 
-  Future<List<LayerModel>> getLayers(String projectId) async {
+  // Saving a project
+  Future<void> saveProject(ProjectModel project) async {
     final db = await instance.database;
+
+    // Upsert the project
+    await db.insert(
+      'projects',
+      _projectToMap(project),
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+
+    // Save layers
+    for (var layer in project.layers) {
+      await saveLayer(layer, project.id);
+    }
+  }
+
+  Map<String, dynamic> _projectToMap(ProjectModel project) {
+    return {
+      'id': project.id,
+      'name': project.name,
+      'cachedImageUrl': project.cachedImageUrl,
+      'createdAt': project.createdAt,
+      'lastModified': project.lastModified,
+      'canvasWidth': project.canvasSize.width,
+      'canvasHeight': project.canvasSize.height,
+      'zoomLevel': project.zoomLevel,
+      'viewportX': project.lastViewportPosition?.dx,
+      'viewportY': project.lastViewportPosition?.dy,
+    };
+  }
+
+// Saving a layer
+  Future<void> saveLayer(LayerModel layer, String projectId) async {
+    final db = await instance.database;
+
+    // Upsert the layer
+    await db.insert(
+      'layers',
+      _layerToMap(layer, projectId),
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+
+    // Save layer states
+    await db.delete(
+      'layer_states',
+      where: 'layerId = ?',
+      whereArgs: [layer.id],
+    );
+
+    for (var state in layer.prevStates) {
+      await saveLayerState(state, layer.id, isUndo: true);
+    }
+    for (var state in layer.redoStates) {
+      await saveLayerState(state, layer.id, isUndo: false);
+    }
+  }
+
+  Map<String, dynamic> _layerToMap(LayerModel layer, String projectId) {
+    return {
+      'id': layer.id,
+      'projectId': projectId,
+      'name': layer.name,
+      'isVisible': layer.isVisible ? 1 : 0,
+      'isLocked': layer.isLocked ? 1 : 0,
+      'isBackground': layer.isBackground ? 1 : 0,
+      'opacity': layer.opacity,
+      'imagePath': layer.imagePath,
+    };
+  }
+
+  // Loading layers
+  Future<List<LayerModel>> loadLayers(String projectId) async {
+    final db = await instance.database;
+
     final layerMaps = await db.query(
       'layers',
       where: 'projectId = ?',
       whereArgs: [projectId],
     );
 
-    return Future.wait(layerMaps.map((layerJson) async {
-      final layerId = layerJson['id'] as String;
-      final prevStates = await getLayerStates(layerId, true);
-      final redoStates = await getLayerStates(layerId, false);
+    final layers = <LayerModel>[];
 
-      return LayerModel.fromMap({
-        ...layerJson,
-        'prevLayerStates': prevStates,
-        'redoLayerStates': redoStates,
-      });
-    }));
+    for (var layerMap in layerMaps) {
+      final layerId = layerMap['id'] as String;
+      final prevStates = await loadLayerStates(layerId, isUndo: true);
+      final redoStates = await loadLayerStates(layerId, isUndo: false);
+
+      layers.add(
+        LayerModel.fromMap({
+          ...layerMap,
+          'prevLayerStates': prevStates,
+          'redoLayerStates': redoStates,
+        }),
+      );
+    }
+
+    return layers;
   }
 
-  Future<List<LayerStateModel>> getLayerStates(
-    String layerId,
-    bool isUndo,
-  ) async {
+  // Saving a layer state
+  Future<void> saveLayerState(
+    LayerStateModel state,
+    String layerId, {
+    required bool isUndo,
+  }) async {
     final db = await instance.database;
+
+    await db.insert(
+      'layer_states',
+      {
+        'layerId': layerId,
+        'imagePath': state.imagePath,
+        'isUndo': isUndo ? 1 : 0,
+      },
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  // Loading layer states
+  Future<List<LayerStateModel>> loadLayerStates(
+    String layerId, {
+    required bool isUndo,
+  }) async {
+    final db = await instance.database;
+
     final stateMaps = await db.query(
       'layer_states',
       where: 'layerId = ? AND isUndo = ?',
       whereArgs: [layerId, isUndo ? 1 : 0],
     );
-    return stateMaps.map((json) => LayerStateModel.fromMap(json)).toList();
+
+    return stateMaps.map((stateMap) {
+      return LayerStateModel.fromJson(stateMap);
+    }).toList();
   }
 
   Future<List<ProjectModel>> getAllProjects() async {
@@ -166,7 +240,7 @@ class DatabaseHelper {
 
     return Future.wait(projectMaps.map((projectJson) async {
       final projectId = projectJson['id'] as String;
-      final layers = await getLayers(projectId);
+      final layers = await loadLayers(projectId);
 
       return ProjectModel.fromJson({
         ...projectJson,
@@ -174,8 +248,8 @@ class DatabaseHelper {
             .map(
               (l) => {
                 ...l.toMap(),
-                'prevLayerStates': l.prevStates.map((s) => s.toMap()).toList(),
-                'redoLayerStates': l.redoStates.map((s) => s.toMap()).toList(),
+                'prevLayerStates': l.prevStates.map((s) => s.toJson()).toList(),
+                'redoLayerStates': l.redoStates.map((s) => s.toJson()).toList(),
               },
             )
             .toList(),
@@ -200,9 +274,9 @@ class DatabaseHelper {
         .delete('layer_states', where: 'layerId = ?', whereArgs: [layer.id]);
     await Future.wait([
       ...layer.prevStates
-          .map((state) => insertLayerState(state, layer.id, true)),
+          .map((state) => saveLayerState(state, layer.id, isUndo: true)),
       ...layer.redoStates
-          .map((state) => insertLayerState(state, layer.id, false)),
+          .map((state) => saveLayerState(state, layer.id, isUndo: false)),
     ]);
     return db.update(
       'layers',

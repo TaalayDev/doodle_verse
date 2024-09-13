@@ -6,7 +6,7 @@ part of 'projects.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$projectsHash() => r'1373109b806c4168614ff8f5e21c55a52d3f071e';
+String _$projectsHash() => r'24a4242515c3430957d0aeef6fa7be84f464076c';
 
 /// See also [Projects].
 @ProviderFor(Projects)
@@ -21,7 +21,7 @@ final projectsProvider =
 );
 
 typedef _$Projects = AutoDisposeAsyncNotifier<List<ProjectModel>>;
-String _$projectHash() => r'fe48b7784529bcf5d89f28a460703174b410e234';
+String _$projectHash() => r'3da5b5b600c441f2178bb65ae7048f3792b8dcf4';
 
 /// Copied from Dart SDK
 class _SystemHash {
