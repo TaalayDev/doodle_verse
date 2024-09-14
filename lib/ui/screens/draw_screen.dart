@@ -176,6 +176,10 @@ class _DrawBodyState extends State<DrawBody> {
           ),
           actions: [
             IconButton(
+              icon: const Icon(Feather.save),
+              onPressed: () {},
+            ),
+            IconButton(
               icon: const Icon(Feather.layers),
               onPressed: () {},
             ),
