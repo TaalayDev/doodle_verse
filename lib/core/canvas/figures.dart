@@ -73,19 +73,19 @@ final triangleTool = BrushData(
   customPainter: (canvas, drawingPath) {
     if (drawingPath.points.length < 2) return;
 
-    final startPoint = drawingPath.points.first.offset;
-    final endPoint = drawingPath.points.last.offset;
-
-    final path = Path()
-      ..moveTo(startPoint.dx, startPoint.dy)
-      ..lineTo(endPoint.dx, endPoint.dy)
-      ..lineTo(startPoint.dx, endPoint.dy)
-      ..lineTo(startPoint.dx, startPoint.dy);
-
     final paint = Paint()
       ..color = drawingPath.color
       ..style = PaintingStyle.stroke
       ..strokeWidth = drawingPath.width;
+
+    final startPoint = drawingPath.points.first.offset;
+    final endPoint = drawingPath.points.last.offset;
+
+    final path = Path()
+      ..moveTo(startPoint.dx, endPoint.dy)
+      ..lineTo((startPoint.dx + endPoint.dx) / 2, startPoint.dy)
+      ..lineTo(endPoint.dx, endPoint.dy)
+      ..close();
 
     canvas.drawPath(path, paint);
   },
@@ -104,16 +104,19 @@ final arrowTool = BrushData(
     final paint = Paint()
       ..color = drawingPath.color
       ..style = PaintingStyle.stroke
-      ..strokeWidth = drawingPath.width;
+      ..strokeWidth = drawingPath.width
+      ..strokeCap = StrokeCap.round;
 
     // Draw the main line
     canvas.drawLine(startPoint, endPoint, paint);
 
     // Calculate arrow head
-    final angle =
-        atan2(endPoint.dy - startPoint.dy, endPoint.dx - startPoint.dx);
-    final arrowLength = 20.0;
-    final arrowAngle = pi / 6; // 30 degrees
+    final angle = atan2(
+      endPoint.dy - startPoint.dy,
+      endPoint.dx - startPoint.dx,
+    );
+    const arrowLength = 20.0;
+    const arrowAngle = pi / 6; // 30 degrees
 
     final x1 = endPoint.dx - arrowLength * cos(angle - arrowAngle);
     final y1 = endPoint.dy - arrowLength * sin(angle - arrowAngle);
@@ -191,8 +194,11 @@ final starTool = BrushData(
 
     final paint = Paint()
       ..color = drawingPath.color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = drawingPath.width;
+      ..style = PaintingStyle.fill
+      ..strokeWidth = drawingPath.width
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round
+      ..blendMode = BlendMode.srcOver;
 
     final path = Path();
 
@@ -201,12 +207,12 @@ final starTool = BrushData(
 
     final radius = (startPoint - endPoint).distance;
 
-    final angle = 4 * pi / 5;
+    const angle = 4 * pi / 5;
 
     final x = startPoint.dx;
     final y = startPoint.dy;
 
-    final angleOffset = -pi / 2;
+    const angleOffset = -pi / 2;
 
     for (int i = 0; i < 10; i++) {
       final x1 = x + radius * cos(angle * i + angleOffset);
@@ -259,8 +265,10 @@ final heartTool = BrushData(
 
     final paint = Paint()
       ..color = drawingPath.color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = drawingPath.width;
+      ..style = PaintingStyle.fill
+      ..strokeWidth = drawingPath.width
+      ..strokeCap = drawingPath.brush.strokeCap
+      ..strokeJoin = drawingPath.brush.strokeJoin;
 
     canvas.drawPath(path, paint);
   },
@@ -320,44 +328,42 @@ final cloudTool = BrushData(
     final startPoint = drawingPath.points.first.offset;
     final endPoint = drawingPath.points.last.offset;
 
-    final width = (endPoint.dx - startPoint.dx).abs();
-    final height = (endPoint.dy - startPoint.dy).abs();
+    // Calculate the bounding rectangle
+    final left = min(startPoint.dx, endPoint.dx);
+    final top = min(startPoint.dy, endPoint.dy);
+    final right = max(startPoint.dx, endPoint.dx);
+    final bottom = max(startPoint.dy, endPoint.dy);
+
+    final width = right - left;
+    final height = bottom - top;
+
+    final rect = Rect.fromLTWH(left, top, width, height);
 
     final path = Path();
-    path.moveTo(startPoint.dx + width * 0.2, startPoint.dy + height * 0.7);
-    path.cubicTo(
-        startPoint.dx,
-        startPoint.dy + height * 0.7,
-        startPoint.dx,
-        startPoint.dy + height * 0.4,
-        startPoint.dx + width * 0.3,
-        startPoint.dy + height * 0.4);
-    path.cubicTo(
-        startPoint.dx + width * 0.3,
-        startPoint.dy,
-        startPoint.dx + width * 0.7,
-        startPoint.dy,
-        startPoint.dx + width * 0.7,
-        startPoint.dy + height * 0.4);
-    path.cubicTo(
-        startPoint.dx + width,
-        startPoint.dy + height * 0.4,
-        startPoint.dx + width,
-        startPoint.dy + height * 0.7,
-        startPoint.dx + width * 0.8,
-        startPoint.dy + height * 0.7);
-    path.cubicTo(
-        startPoint.dx + width * 0.8,
-        startPoint.dy + height,
-        startPoint.dx + width * 0.2,
-        startPoint.dy + height,
-        startPoint.dx + width * 0.2,
-        startPoint.dy + height * 0.7);
+    final random = Random();
+
+    // Increase the number of circles for a fluffier cloud
+    final numCircles = 10;
+
+    for (int i = 0; i < numCircles; i++) {
+      // Random positions within the cloud's bounding rectangle
+      final dx = rect.left + random.nextDouble() * rect.width;
+      final dy = rect.top + random.nextDouble() * rect.height * 0.6;
+
+      // Random sizes for variation
+      final radius = rect.width * (0.15 + random.nextDouble() * 0.15);
+
+      final circleRect = Rect.fromCircle(
+        center: Offset(dx, dy),
+        radius: radius,
+      );
+      path.addOval(circleRect);
+    }
 
     final paint = Paint()
-      ..color = drawingPath.color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = drawingPath.width;
+      ..color = drawingPath.color.withOpacity(0.8)
+      ..style = PaintingStyle.fill
+      ..maskFilter = MaskFilter.blur(BlurStyle.normal, 5.0); // Soft edges
 
     canvas.drawPath(path, paint);
   },
@@ -375,18 +381,51 @@ final lightningTool = BrushData(
 
     final path = Path();
     path.moveTo(startPoint.dx, startPoint.dy);
-    path.lineTo(startPoint.dx + (endPoint.dx - startPoint.dx) * 0.4,
-        startPoint.dy + (endPoint.dy - startPoint.dy) * 0.3);
-    path.lineTo(startPoint.dx + (endPoint.dx - startPoint.dx) * 0.2,
-        startPoint.dy + (endPoint.dy - startPoint.dy) * 0.5);
-    path.lineTo(startPoint.dx + (endPoint.dx - startPoint.dx) * 0.6,
-        startPoint.dy + (endPoint.dy - startPoint.dy) * 0.7);
-    path.lineTo(endPoint.dx, endPoint.dy);
 
+    final random = Random();
+    final numSegments = 20; // Number of segments in the lightning bolt
+
+    for (int i = 1; i <= numSegments; i++) {
+      final t = i / numSegments;
+
+      // Linear interpolation between startPoint and endPoint
+      final dx = startPoint.dx + (endPoint.dx - startPoint.dx) * t;
+      final dy = startPoint.dy + (endPoint.dy - startPoint.dy) * t;
+
+      // Apply random offset perpendicular to the line
+      final offsetMagnitude =
+          (random.nextDouble() - 0.5) * drawingPath.width * 4;
+
+      // Calculate the direction perpendicular to the main line
+      final angle =
+          atan2(endPoint.dy - startPoint.dy, endPoint.dx - startPoint.dx);
+      final perpendicularAngle = angle + pi / 2;
+
+      final offsetX = offsetMagnitude * cos(perpendicularAngle);
+      final offsetY = offsetMagnitude * sin(perpendicularAngle);
+
+      final nextX = dx + offsetX;
+      final nextY = dy + offsetY;
+
+      path.lineTo(nextX, nextY);
+    }
+
+    // Optionally, you can add a glow effect using a blur mask
+    final glowPaint = Paint()
+      ..color = drawingPath.color.withOpacity(0.6)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = drawingPath.width * 2
+      ..maskFilter = MaskFilter.blur(BlurStyle.normal, drawingPath.width);
+
+    // Draw the glow behind the lightning bolt
+    canvas.drawPath(path, glowPaint);
+
+    // Draw the lightning bolt
     final paint = Paint()
       ..color = drawingPath.color
       ..style = PaintingStyle.stroke
-      ..strokeWidth = drawingPath.width;
+      ..strokeWidth = drawingPath.width
+      ..strokeCap = StrokeCap.round;
 
     canvas.drawPath(path, paint);
   },

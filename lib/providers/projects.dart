@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui';
 
+import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -16,6 +17,10 @@ class Projects extends _$Projects {
 
   @override
   Future<List<ProjectModel>> build() async {
+    if (kIsWeb) {
+      return [];
+    }
+
     final dbProjects = await database.getAllProjects();
 
     return dbProjects;
@@ -47,6 +52,22 @@ class Project extends _$Project {
 
   @override
   Future<ProjectModel> build(String projectId) async {
+    if (kIsWeb) {
+      return ProjectModel(
+        id: projectId,
+        name: 'New Project',
+        layers: [
+          const LayerModel(
+            id: '1',
+            name: 'Background',
+            isBackground: true,
+          ),
+        ],
+        createdAt: DateTime.now().millisecondsSinceEpoch,
+        lastModified: DateTime.now().millisecondsSinceEpoch,
+      );
+    }
+
     try {
       final dbProject = await database.loadProject(projectId);
 

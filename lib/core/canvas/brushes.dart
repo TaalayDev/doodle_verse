@@ -300,44 +300,37 @@ final star = BrushData(
   stroke: 'star_stroke',
   densityOffset: 20,
   customPainter: (canvas, drawingPath) {
-    final path = Path();
-    path.moveTo(
-        drawingPath.points.first.offset.dx, drawingPath.points.first.offset.dy);
-    for (int i = 1; i < drawingPath.points.length; i++) {
-      final p0 = drawingPath.points[i - 1];
-      final p1 = drawingPath.points[i];
-
-      path.quadraticBezierTo(
-        p0.offset.dx,
-        p0.offset.dy,
-        (p0.offset.dx + p1.offset.dx) / 2,
-        (p0.offset.dy + p1.offset.dy) / 2,
-      );
-    }
-
     final paint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = drawingPath.width
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round;
+      ..color = drawingPath.color
+      ..style = PaintingStyle.fill;
 
-    final pathMetrics = path.computeMetrics().toList();
-    for (var metric in pathMetrics) {
-      final length = metric.length;
-      final step = length / 360;
-      for (double i = 0; i < length; i += step) {
-        final color = HSVColor.fromAHSV(
-          1.0,
-          (i / length) * 360, // Hue from 0 to 360
-          1.0,
-          1.0,
-        ).toColor();
+    for (final point in drawingPath.points) {
+      final starPath = Path();
+      final center = point.offset;
+      final size = drawingPath.width;
 
-        paint.color = color;
+      for (int i = 0; i < 5; i++) {
+        final angle = (i * 4 * pi / 5) - pi / 2;
+        final outerPoint = Offset(
+          center.dx + size * cos(angle),
+          center.dy + size * sin(angle),
+        );
+        final innerAngle = angle + pi / 5;
+        final innerPoint = Offset(
+          center.dx + size * 0.4 * cos(innerAngle),
+          center.dy + size * 0.4 * sin(innerAngle),
+        );
 
-        final offset = metric.getTangentForOffset(i)!.position;
-        canvas.drawCircle(offset, drawingPath.width / 2, paint);
+        if (i == 0) {
+          starPath.moveTo(outerPoint.dx, outerPoint.dy);
+        } else {
+          starPath.lineTo(outerPoint.dx, outerPoint.dy);
+        }
+        starPath.lineTo(innerPoint.dx, innerPoint.dy);
       }
+      starPath.close();
+
+      canvas.drawPath(starPath, paint);
     }
   },
 );
@@ -346,49 +339,50 @@ final heart = BrushData(
   id: 10,
   name: 'heart',
   stroke: 'heart_stroke',
-  densityOffset: 20,
+  densityOffset: 10,
   customPainter: (canvas, drawingPath) {
-    final path = Path();
-    path.moveTo(
-        drawingPath.points.first.offset.dx, drawingPath.points.first.offset.dy);
-    for (int i = 1; i < drawingPath.points.length; i++) {
-      final p0 = drawingPath.points[i - 1];
-      final p1 = drawingPath.points[i];
-
-      path.quadraticBezierTo(
-        p0.offset.dx,
-        p0.offset.dy,
-        (p0.offset.dx + p1.offset.dx) / 2,
-        (p0.offset.dy + p1.offset.dy) / 2,
-      );
-    }
-
     final paint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = drawingPath.width
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round;
+      ..color = drawingPath.color
+      ..style = PaintingStyle.fill;
 
-    final pathMetrics = path.computeMetrics().toList();
-    for (var metric in pathMetrics) {
-      final length = metric.length;
-      final step = length / 360;
-      for (double i = 0; i < length; i += step) {
-        final color = HSVColor.fromAHSV(
-          1.0,
-          (i / length) * 360, // Hue from 0 to 360
-          1.0,
-          1.0,
-        ).toColor();
+    for (final point in drawingPath.points) {
+      final center = point.offset;
+      final size = drawingPath.width * 2.0;
 
-        paint.color = color;
+      final path = Path();
 
-        final offset = metric.getTangentForOffset(i)!.position;
-        canvas.drawCircle(offset, drawingPath.width / 2, paint);
-      }
+      // Starting point at the top center of the heart
+      path.moveTo(center.dx, center.dy + size * 0.2);
+
+      // Left side of the heart
+      path.cubicTo(
+        center.dx - size * 0.6, center.dy - size * 0.2, // Control point 1
+        center.dx - size * 0.6, center.dy + size * 0.5, // Control point 2
+        center.dx, center.dy + size * 0.85, // End point
+      );
+
+      // Right side of the heart
+      path.cubicTo(
+        center.dx + size * 0.6, center.dy + size * 0.5, // Control point 1
+        center.dx + size * 0.6, center.dy - size * 0.2, // Control point 2
+        center.dx, center.dy + size * 0.2, // End point
+      );
+
+      path.close();
+
+      canvas.drawPath(path, paint);
     }
   },
 );
+
+extension ColorExtension on Color {
+  Color darken([double amount = .1]) {
+    assert(amount >= 0 && amount <= 1);
+    final hsl = HSLColor.fromColor(this);
+    final hslDark = hsl.withLightness((hsl.lightness - amount).clamp(0.0, 1.0));
+    return hslDark.toColor();
+  }
+}
 
 final bubbleBrush = BrushData(
   id: 12,

@@ -3,10 +3,12 @@ import 'dart:math';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 
+import '../../core/canvas/drawing_canvas.dart';
 import '../../data.dart';
 import '../../data/models/drawing_path.dart';
 import '../../providers/common.dart';
@@ -545,8 +547,9 @@ class _DrawBodyState extends State<DrawBody> {
     setState(() {
       _currentPath = DrawingPath(
         brush: _brush,
-        color:
-            _brush.id == widget.tools.eraser.id ? Colors.white : _currentColor,
+        color: _brush.id == widget.tools.eraser.id
+            ? Theme.of(context).scaffoldBackgroundColor
+            : _currentColor,
         width: _brushSize,
         points: [
           (
@@ -591,14 +594,16 @@ class _DrawBodyState extends State<DrawBody> {
   void _renderPathsToImage(DrawingPath? drawingPath) async {
     if (drawingPath == null) return;
 
-    final recorder = ui.PictureRecorder();
-    final canvas = Canvas(recorder);
-
     final size = MediaQuery.of(context).size;
 
-    final painter = DrawingPainter([], drawingPath);
-
-    painter.paint(canvas, size);
+    final recorder = ui.PictureRecorder();
+    final canvas = Canvas(recorder);
+    canvas.saveLayer(
+      Rect.fromLTWH(0, 0, size.width, size.height),
+      Paint(),
+    );
+    DrawingCanvas().drawPath(canvas, drawingPath);
+    canvas.restore();
 
     final picture = recorder.endRecording();
 
