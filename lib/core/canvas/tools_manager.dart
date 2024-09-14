@@ -11,10 +11,15 @@ class ToolsManager {
   final List<BrushData> _figures = [];
   final BrushData eraser = b.eraser;
   late final BrushData pencil;
+  late final BrushData defaultBrush;
 
   List<BrushData> get brushes => _brushes;
   List<BrushData> get figures => _figures;
-  List<BrushData> get allTools => _brushes + _figures;
+  List<BrushData> get allTools => [
+        ..._brushes,
+        ..._figures,
+        eraser,
+      ];
 
   BrushData getBrush(int id) {
     return allTools.firstWhere((element) => element.id == id);
@@ -22,13 +27,14 @@ class ToolsManager {
 
   Future<void> loadTools() async {
     pencil = await b.pencil;
+    defaultBrush = b.defaultBrush;
     _brushes.addAll([
+      defaultBrush,
       pencil,
       b.softPencilBrush,
       b.hardPencilBrush,
       b.sketchyPencilBrush,
       b.coloredPencilBrush,
-      b.defaultBrush,
       await b.marker,
       b.watercolor,
       b.crayon,

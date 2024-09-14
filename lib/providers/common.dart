@@ -10,6 +10,7 @@ final localStorageProvider = Provider((ref) => LocalStorage());
 final databaseProvider = Provider((ref) => DatabaseHelper.instance);
 
 typedef ToolsData = ({
+  BrushData defaultBrush,
   BrushData pencil,
   BrushData eraser,
   List<BrushData> brushes,
@@ -21,6 +22,7 @@ class Tools extends _$Tools {
   @override
   ToolsData build() {
     return (
+      defaultBrush: ToolsManager().defaultBrush,
       pencil: ToolsManager().pencil,
       eraser: ToolsManager().eraser,
       brushes: ToolsManager().brushes,

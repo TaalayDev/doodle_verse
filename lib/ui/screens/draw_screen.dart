@@ -62,9 +62,9 @@ class DrawBody extends StatefulWidget {
 
 class _DrawBodyState extends State<DrawBody> {
   late final DrawingController _drawingController;
-  late BrushData _brush = widget.tools.pencil;
+  late BrushData _brush = widget.tools.defaultBrush;
   Color _currentColor = const Color(0xFF333333);
-  double _brushSize = 8.0;
+  double _brushSize = 4.0;
 
   // Variables for zoom and pan
   double _scale = 1.0;
