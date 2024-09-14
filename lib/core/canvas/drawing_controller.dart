@@ -52,6 +52,7 @@ class DrawingController extends ChangeNotifier {
       }
       paths.add(currentPath!);
       currentPath = null;
+      _redoStack.clear();
       notifyListeners();
     }
   }
@@ -76,6 +77,12 @@ class DrawingController extends ChangeNotifier {
     paths.clear();
     currentPath = null;
     _redoStack.clear();
+    notifyListeners();
+  }
+
+  void loadStates(List<DrawingPath> newPaths, List<DrawingPath> redoPaths) {
+    paths.addAll(newPaths);
+    _redoStack.addAll(redoPaths);
     notifyListeners();
   }
 

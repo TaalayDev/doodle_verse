@@ -6,12 +6,11 @@ part of 'common.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$toolsHash() => r'2f7872e0c0a207809c591fba3a1050704d1d1ef6';
+String _$toolsHash() => r'5758cd7d6faffb75ca561f530fef48ac4bf63e3f';
 
 /// See also [Tools].
 @ProviderFor(Tools)
-final toolsProvider =
-    AutoDisposeAsyncNotifierProvider<Tools, ToolsData>.internal(
+final toolsProvider = AutoDisposeNotifierProvider<Tools, ToolsData>.internal(
   Tools.new,
   name: r'toolsProvider',
   debugGetCreateSourceHash:
@@ -20,6 +19,6 @@ final toolsProvider =
   allTransitiveDependencies: null,
 );
 
-typedef _$Tools = AutoDisposeAsyncNotifier<ToolsData>;
+typedef _$Tools = AutoDisposeNotifier<ToolsData>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import '../models/project_model.dart';
@@ -11,7 +12,7 @@ class DatabaseHelper {
 
   Future<Database> get database async {
     if (_database != null) return _database!;
-    _database = await _initDB('_doodleVerse.db');
+    _database = await _initDB('doodle_Verse.db');
     return _database!;
   }
 
@@ -56,7 +57,10 @@ class DatabaseHelper {
       CREATE TABLE layer_states(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         layerId TEXT,
-        imagePath TEXT,
+        points TEXT,
+        brush INTEGER,
+        color INTEGER,
+        width REAL,
         isUndo INTEGER,
         FOREIGN KEY (layerId) REFERENCES layers (id) ON DELETE CASCADE
       )
@@ -206,7 +210,15 @@ class DatabaseHelper {
       'layer_states',
       {
         'layerId': layerId,
-        'imagePath': state.imagePath,
+        'points': jsonEncode(state.drawingPath.points
+            .map((p) => {
+                  'x': p.offset.dx,
+                  'y': p.offset.dy,
+                })
+            .toList()),
+        'brush': state.drawingPath.brush.id,
+        'color': state.drawingPath.color.value,
+        'width': state.drawingPath.width,
         'isUndo': isUndo ? 1 : 0,
       },
       conflictAlgorithm: ConflictAlgorithm.replace,

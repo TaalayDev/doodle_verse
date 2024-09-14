@@ -1,18 +1,13 @@
 import 'dart:io';
-import 'dart:math';
 import 'dart:ui' as ui;
 
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 
-import '../../core/canvas/drawing_canvas.dart';
 import '../../core/canvas/drawing_controller.dart';
 import '../../data.dart';
-import '../../data/models/drawing_path.dart';
 import '../../providers/common.dart';
 import '../../providers/projects.dart';
 import '../widgets/brush_settings_bottom_sheet.dart';
@@ -34,16 +29,14 @@ class DrawScreen extends HookConsumerWidget {
     final toolsState = ref.watch(toolsProvider);
     final projectState = ref.watch(projectProvider(id));
 
-    if (toolsState.isLoading || projectState.isLoading) {
-      return const Scaffold(
-        body: Center(
-          child: CircularProgressIndicator(),
-        ),
+    if (projectState.isLoading) {
+      return const Center(
+        child: CircularProgressIndicator(),
       );
     }
 
     return DrawBody(
-      tools: toolsState.requireValue,
+      tools: toolsState,
       project: projectState.requireValue,
       projectNotifer: ref.watch(projectProvider(id).notifier),
     );
@@ -67,58 +60,6 @@ class DrawBody extends StatefulWidget {
 }
 
 class _DrawBodyState extends State<DrawBody> {
-  late final _brushes = [
-    widget.tools.pencil,
-    widget.tools.softPencil,
-    widget.tools.hardPencil,
-    widget.tools.sketchyPencil,
-    widget.tools.coloredPencil,
-    widget.tools.defaultBrush,
-    widget.tools.marker,
-    widget.tools.watercolor,
-    widget.tools.crayon,
-    widget.tools.sprayPaint,
-    widget.tools.neon,
-    widget.tools.charcoal,
-    widget.tools.sketchy,
-    widget.tools.star,
-    widget.tools.heart,
-    widget.tools.bubbleBrush,
-    widget.tools.glitterBrush,
-    widget.tools.rainbowBrush,
-    widget.tools.sparkleBrush,
-    widget.tools.leafBrush,
-    widget.tools.grassBrush,
-    widget.tools.pixelBrush,
-    widget.tools.glowBrush,
-    widget.tools.mosaicBrush,
-    widget.tools.splatBrush,
-    widget.tools.calligraphyBrush,
-    widget.tools.electricBrush,
-    widget.tools.furBrush,
-    widget.tools.galaxyBrush,
-    widget.tools.fractalBrush,
-    widget.tools.fireBrush,
-    widget.tools.snowflakeBrush,
-    widget.tools.cloudBrush,
-    widget.tools.lightningBrush,
-    widget.tools.featherBrush,
-    widget.tools.galaxyBrush1,
-    widget.tools.confettiBrush,
-    widget.tools.metallicBrush,
-    widget.tools.embroideryBrush,
-    widget.tools.stainedGlassBrush,
-    widget.tools.ribbonBrush,
-    widget.tools.particleFieldBrush,
-    widget.tools.waveInterferenceBrush,
-    widget.tools.voronoiBrush,
-    widget.tools.chaosTheoryBrush,
-    widget.tools.inkBrush,
-    widget.tools.fireworksBrush,
-    widget.tools.embossBrush,
-    widget.tools.glassBrush
-  ];
-
   late final DrawingController _drawingController;
   late BrushData _brush = widget.tools.pencil;
   Color _currentColor = const Color(0xFF333333);
@@ -153,16 +94,10 @@ class _DrawBodyState extends State<DrawBody> {
     final undoStates = layer.prevStates;
     final redoStates = layer.redoStates;
 
-    // for (final state in undoStates) {
-    //   final image = await _loadImageFromFile(state.imagePath);
-    //   _paths.add(image);
-    // }
-
-    // for (final state in redoStates) {
-    //   final image = await _loadImageFromFile(state.imagePath);
-    //   _redoStack.add(image);
-    // }
-    setState(() {});
+    _drawingController.loadStates(
+      undoStates.map((state) => state.drawingPath).toList(),
+      redoStates.map((state) => state.drawingPath).toList(),
+    );
   }
 
   Future<ui.Image> _loadImageFromFile(String path) async {
@@ -414,28 +349,10 @@ class _DrawBodyState extends State<DrawBody> {
                           mainAxisSpacing: 10,
                           shrinkWrap: true,
                           children: [
-                            for (var brush in [
-                              widget.tools.rectangleTool,
-                              widget.tools.circleTool,
-                              widget.tools.lineTool,
-                              widget.tools.triangleTool,
-                              widget.tools.heartTool,
-                              widget.tools.starTool,
-                              widget.tools.polygonTool,
-                              widget.tools.spiralTool,
-                              widget.tools.arrowTool,
-                              widget.tools.ellipseTool,
-                              widget.tools.cloudTool,
-                              widget.tools.lightningTool,
-                              widget.tools.pentagonTool,
-                              widget.tools.hexagonTool,
-                              widget.tools.parallelogramTool,
-                              widget.tools.trapezoidTool,
-                              widget.tools.fillTool,
-                            ])
+                            for (var figure in widget.tools.figures)
                               MaterialInkWell(
                                 onTap: () {
-                                  _setBrush(brush);
+                                  _setBrush(figure);
                                   Navigator.of(context).pop();
                                 },
                                 padding: const EdgeInsets.all(10),
@@ -444,18 +361,18 @@ class _DrawBodyState extends State<DrawBody> {
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     Icon(
-                                      _getBrushIcon(brush),
+                                      _getBrushIcon(figure),
                                       size: 26,
-                                      color: _brush.id == brush.id
+                                      color: _brush.id == figure.id
                                           ? Theme.of(context).primaryColor
                                           : null,
                                     ),
                                     const SizedBox(height: 5),
                                     FittedBox(
                                       child: Text(
-                                        brush.name,
+                                        figure.name,
                                         style: TextStyle(
-                                          color: _brush.id == brush.id
+                                          color: _brush.id == figure.id
                                               ? Theme.of(context).primaryColor
                                               : null,
                                         ),
@@ -512,6 +429,11 @@ class _DrawBodyState extends State<DrawBody> {
   }
 
   void _showBrushPicker() {
+    final brushes = [
+      widget.tools.pencil,
+      ...widget.tools.brushes,
+    ];
+
     showModalBottomSheet(
       context: context,
       builder: (context) {
@@ -524,10 +446,10 @@ class _DrawBodyState extends State<DrawBody> {
               mainAxisSpacing: 10,
               childAspectRatio: 1,
             ),
-            itemCount: _brushes.length,
+            itemCount: brushes.length,
             shrinkWrap: true,
             itemBuilder: (context, index) {
-              final brush = _brushes[index];
+              final brush = brushes[index];
               return GestureDetector(
                 onTap: () {
                   setState(() {
@@ -599,7 +521,12 @@ class _DrawBodyState extends State<DrawBody> {
 
   void _onScaleEnd(ScaleEndDetails details) {
     if (!_isScaling) {
+      final state = _drawingController.currentPath;
       _drawingController.endPath();
+
+      if (state != null) {
+        _projectNotifier.addNewState(widget.project.layers.last.id, state);
+      }
     }
     _isScaling = false;
   }
@@ -614,44 +541,6 @@ class _DrawBodyState extends State<DrawBody> {
     setState(() {
       _scale = (_scale / 1.2).clamp(0.5, 5.0);
     });
-  }
-
-  void _renderPathsToImage(DrawingPath? drawingPath) async {
-    if (drawingPath == null) return;
-
-    final size = MediaQuery.of(context).size;
-
-    final recorder = ui.PictureRecorder();
-    final canvas = Canvas(recorder);
-    canvas.saveLayer(
-      Rect.fromLTWH(0, 0, size.width, size.height),
-      Paint(),
-    );
-    DrawingCanvas().drawPath(canvas, size, drawingPath);
-    canvas.restore();
-
-    final picture = recorder.endRecording();
-
-    final image = await picture.toImage(
-      size.width.toInt(),
-      size.height.toInt(),
-    );
-
-    await _saveLayerState(image);
-
-    // setState(() {
-    //   _paths.add(image);
-    //   _currentPath = null;
-    //   _redoStack.clear();
-    // });
-  }
-
-  Future<void> _saveLayerState(ui.Image image) async {
-    _projectNotifier.addNewState(widget.project.layers.last.id, image);
-
-    // setState(() {
-    //   _redoStack.clear();
-    // });
   }
 
   void _setBrush(BrushData brush) {

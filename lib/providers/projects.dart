@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui';
 
+import 'package:doodle_verse/data/models/drawing_path.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -21,9 +22,14 @@ class Projects extends _$Projects {
       return [];
     }
 
-    final dbProjects = await database.getAllProjects();
-
-    return dbProjects;
+    try {
+      final dbProjects = await database.getAllProjects();
+      return dbProjects;
+    } catch (e, s) {
+      print(e);
+      print(s);
+      rethrow;
+    }
   }
 
   void refresh() async {
@@ -167,16 +173,15 @@ class Project extends _$Project {
     }
   }
 
-  Future<void> addNewState(String layer, Image image) async {
+  Future<void> addNewState(String layer, DrawingPath path) async {
     final project = state.valueOrNull;
     if (project != null) {
       final layerIndex = project.layers.indexWhere((l) => l.id == layer);
       if (layerIndex != -1) {
         final layer = project.layers[layerIndex];
         final newStates = List<LayerStateModel>.from(layer.prevStates);
-        final name = '${layer.id}_${newStates.length + 1}';
-        final path = await _saveImage(image, name);
-        final newState = LayerStateModel(imagePath: path);
+
+        final newState = LayerStateModel(drawingPath: path);
         newStates.add(newState);
 
         final updatedLayer = layer.copyWith(

@@ -34,7 +34,7 @@ Future<BrushData> get pencil async => BrushData(
     );
 
 final softPencilBrush = BrushData(
-  id: 42,
+  id: 2,
   name: 'soft pencil',
   stroke: 'soft_pencil_stroke',
   densityOffset: 1.0,
@@ -64,7 +64,7 @@ final softPencilBrush = BrushData(
 );
 
 final hardPencilBrush = BrushData(
-  id: 43,
+  id: 3,
   name: 'hard pencil',
   stroke: 'hard_pencil_stroke',
   densityOffset: 1.0,
@@ -84,7 +84,7 @@ final hardPencilBrush = BrushData(
 );
 
 final sketchyPencilBrush = BrushData(
-  id: 44,
+  id: 4,
   name: 'sketchy pencil',
   stroke: 'sketchy_pencil_stroke',
   densityOffset: 2.0,
@@ -120,7 +120,7 @@ final sketchyPencilBrush = BrushData(
 );
 
 final coloredPencilBrush = BrushData(
-  id: 45,
+  id: 5,
   name: 'colored pencil',
   stroke: 'colored_pencil_stroke',
   densityOffset: 1.5,
@@ -156,7 +156,7 @@ final coloredPencilBrush = BrushData(
 );
 
 const defaultBrush = BrushData(
-  id: 0,
+  id: 6,
   name: 'Default',
   stroke: 'brush_stroke',
   densityOffset: 1.0,
@@ -164,7 +164,7 @@ const defaultBrush = BrushData(
 );
 
 Future<BrushData> get marker async => BrushData(
-      id: 2,
+      id: 7,
       name: 'marker',
       stroke: 'marker_stroke',
       isNew: true,
@@ -178,7 +178,7 @@ Future<BrushData> get marker async => BrushData(
     );
 
 final watercolor = BrushData(
-  id: 3,
+  id: 8,
   name: 'watercolor',
   stroke: 'watercolor_stroke',
   densityOffset: 2.0,
@@ -227,7 +227,7 @@ final watercolor = BrushData(
 );
 
 const eraser = BrushData(
-  id: 5,
+  id: 9,
   name: 'eraser',
   stroke: 'eraser_stroke',
   densityOffset: 1.0,
@@ -240,7 +240,7 @@ const eraser = BrushData(
 );
 
 final crayon = BrushData(
-  id: 6,
+  id: 10,
   name: 'crayon',
   stroke: 'crayon_stroke',
   opacityDiff: 0.1,
@@ -282,7 +282,7 @@ final crayon = BrushData(
 );
 
 final sprayPaint = BrushData(
-  id: 7,
+  id: 11,
   name: 'sprayPaint',
   stroke: 'spray_paint_stroke',
   opacityDiff: 0.2,
@@ -309,7 +309,7 @@ final sprayPaint = BrushData(
 );
 
 const neon = BrushData(
-  id: 8,
+  id: 12,
   name: 'neon',
   stroke: 'neon_stroke',
   opacityDiff: 0.1,
@@ -320,7 +320,7 @@ const neon = BrushData(
 );
 
 final charcoal = BrushData(
-  id: 9,
+  id: 13,
   name: 'charcoal',
   stroke: 'charcoal_stroke',
   opacityDiff: 0.15,
@@ -370,7 +370,7 @@ final charcoal = BrushData(
 );
 
 final sketchy = BrushData(
-  id: 11,
+  id: 14,
   name: 'sketchy',
   stroke: 'sketchy_stroke',
   densityOffset: 30,
@@ -427,7 +427,7 @@ final sketchy = BrushData(
 );
 
 final star = BrushData(
-  id: 9,
+  id: 15,
   name: 'star',
   stroke: 'star_stroke',
   densityOffset: 20,
@@ -468,7 +468,7 @@ final star = BrushData(
 );
 
 final heart = BrushData(
-  id: 10,
+  id: 16,
   name: 'heart',
   stroke: 'heart_stroke',
   densityOffset: 10,
@@ -517,7 +517,7 @@ extension ColorExtension on Color {
 }
 
 final bubbleBrush = BrushData(
-  id: 12,
+  id: 17,
   name: 'bubble',
   stroke: 'bubble_stroke',
   densityOffset: 20,
@@ -548,7 +548,7 @@ final bubbleBrush = BrushData(
 );
 
 final glitterBrush = BrushData(
-  id: 13,
+  id: 18,
   name: 'glitter',
   stroke: 'glitter_stroke',
   densityOffset: 20,
@@ -580,7 +580,7 @@ final glitterBrush = BrushData(
 );
 
 final rainbowBrush = BrushData(
-  id: 14,
+  id: 19,
   name: 'rainbow',
   stroke: 'rainbow_stroke',
   densityOffset: 1.0,
@@ -631,7 +631,7 @@ final rainbowBrush = BrushData(
 );
 
 final sparkleBrush = BrushData(
-  id: 15,
+  id: 20,
   name: 'sparkle',
   stroke: 'sparkle_stroke',
   densityOffset: 5.0,
@@ -672,7 +672,7 @@ final sparkleBrush = BrushData(
 );
 
 final leafBrush = BrushData(
-  id: 16,
+  id: 21,
   name: 'leaf',
   stroke: 'leaf_stroke',
   densityOffset: 15.0,
@@ -726,7 +726,7 @@ final leafBrush = BrushData(
 );
 
 final grassBrush = BrushData(
-  id: 17,
+  id: 22,
   name: 'grass',
   stroke: 'grass_stroke',
   densityOffset: 8.0,
@@ -771,7 +771,7 @@ final grassBrush = BrushData(
 );
 
 final pixelBrush = BrushData(
-  id: 18,
+  id: 23,
   name: 'pixel',
   stroke: 'pixel_stroke',
   densityOffset: 5.0,
@@ -811,7 +811,7 @@ final pixelBrush = BrushData(
 );
 
 final glowBrush = BrushData(
-  id: 16,
+  id: 24,
   name: 'neonGlow',
   stroke: 'neon_glow_stroke',
   densityOffset: 1.0,
@@ -849,7 +849,7 @@ final glowBrush = BrushData(
 );
 
 final mosaicBrush = BrushData(
-  id: 15,
+  id: 25,
   name: 'mosaic',
   stroke: 'mosaic_stroke',
   densityOffset: 10.0,
@@ -886,7 +886,7 @@ final mosaicBrush = BrushData(
 );
 
 final splatBrush = BrushData(
-  id: 17,
+  id: 26,
   name: 'splat',
   stroke: 'splat_stroke',
   densityOffset: 30.0,
@@ -935,7 +935,7 @@ final splatBrush = BrushData(
 );
 
 final calligraphyBrush = BrushData(
-  id: 19,
+  id: 27,
   name: 'calligraphy',
   stroke: 'calligraphy_stroke',
   densityOffset: 2.0,
@@ -972,7 +972,7 @@ final calligraphyBrush = BrushData(
 );
 
 final electricBrush = BrushData(
-  id: 20,
+  id: 28,
   name: 'electric',
   stroke: 'electric_stroke',
   densityOffset: 5.0,
@@ -1022,7 +1022,7 @@ final electricBrush = BrushData(
 );
 
 final furBrush = BrushData(
-  id: 21,
+  id: 29,
   name: 'fur',
   stroke: 'fur_stroke',
   densityOffset: 3.0,
@@ -1055,7 +1055,7 @@ final furBrush = BrushData(
 );
 
 final galaxyBrush = BrushData(
-  id: 22,
+  id: 30,
   name: 'galaxy',
   stroke: 'galaxy_stroke',
   densityOffset: 10.0,
@@ -1113,7 +1113,7 @@ final galaxyBrush = BrushData(
 );
 
 final fractalBrush = BrushData(
-  id: 23,
+  id: 31,
   name: 'fractal',
   stroke: 'fractal_stroke',
   densityOffset: 20.0,
@@ -1153,7 +1153,7 @@ final fractalBrush = BrushData(
 );
 
 final fireBrush = BrushData(
-  id: 23,
+  id: 32,
   name: 'fire',
   stroke: 'fire_stroke',
   densityOffset: 10.0,
@@ -1212,7 +1212,7 @@ final fireBrush = BrushData(
 
 // Snowflake Brush
 final snowflakeBrush = BrushData(
-  id: 24,
+  id: 33,
   name: 'snowflake',
   stroke: 'snowflake_stroke',
   densityOffset: 15.0,
@@ -1268,7 +1268,7 @@ final snowflakeBrush = BrushData(
 
 // Cloud Brush
 final cloudBrush = BrushData(
-  id: 25,
+  id: 35,
   name: 'cloud',
   stroke: 'cloud_stroke',
   densityOffset: 5.0,
@@ -1314,7 +1314,7 @@ final cloudBrush = BrushData(
 
 // Lightning Brush
 final lightningBrush = BrushData(
-  id: 26,
+  id: 36,
   name: 'lightning',
   stroke: 'lightning_stroke',
   densityOffset: 25.0,
@@ -1364,7 +1364,7 @@ final lightningBrush = BrushData(
 
 // Feather Brush
 final featherBrush = BrushData(
-  id: 27,
+  id: 37,
   name: 'feather',
   stroke: 'feather_stroke',
   densityOffset: 15.0,
@@ -1437,7 +1437,7 @@ final featherBrush = BrushData(
 );
 
 final galaxyBrush1 = BrushData(
-  id: 28,
+  id: 38,
   name: 'galaxy',
   stroke: 'galaxy_stroke',
   densityOffset: 20.0,
@@ -1503,7 +1503,7 @@ final galaxyBrush1 = BrushData(
 
 // Confetti Brush
 final confettiBrush = BrushData(
-  id: 29,
+  id: 39,
   name: 'confetti',
   stroke: 'confetti_stroke',
   densityOffset: 10.0,
@@ -1539,7 +1539,7 @@ final confettiBrush = BrushData(
 
 // Metallic Brush
 final metallicBrush = BrushData(
-  id: 30,
+  id: 40,
   name: 'metallic',
   stroke: 'metallic_stroke',
   densityOffset: 1.0,
@@ -1582,7 +1582,7 @@ final metallicBrush = BrushData(
 
 // Embroidery Brush
 final embroideryBrush = BrushData(
-  id: 31,
+  id: 41,
   name: 'embroidery',
   stroke: 'embroidery_stroke',
   densityOffset: 5.0,
@@ -1632,7 +1632,7 @@ final embroideryBrush = BrushData(
 
 // Stained Glass Brush
 final stainedGlassBrush = BrushData(
-  id: 32,
+  id: 42,
   name: 'stainedGlass',
   stroke: 'stained_glass_stroke',
   densityOffset: 20.0,
@@ -1706,7 +1706,7 @@ final stainedGlassBrush = BrushData(
 );
 
 final ribbonBrush = BrushData(
-  id: 24,
+  id: 43,
   name: 'ribbon',
   stroke: 'ribbon_stroke',
   densityOffset: 2.0,
@@ -1771,7 +1771,7 @@ final ribbonBrush = BrushData(
 );
 
 final particleFieldBrush = BrushData(
-  id: 25,
+  id: 44,
   name: 'particleField',
   stroke: 'particle_field_stroke',
   densityOffset: 10.0,
@@ -1806,7 +1806,7 @@ final particleFieldBrush = BrushData(
 );
 
 final waveInterferenceBrush = BrushData(
-  id: 26,
+  id: 45,
   name: 'waveInterference',
   stroke: 'wave_interference_stroke',
   densityOffset: 5.0,
@@ -1859,7 +1859,7 @@ final waveInterferenceBrush = BrushData(
 );
 
 final voronoiBrush = BrushData(
-  id: 27,
+  id: 46,
   name: 'voronoi',
   stroke: 'voronoi_stroke',
   densityOffset: 20.0,
@@ -1915,7 +1915,7 @@ final voronoiBrush = BrushData(
 );
 
 final chaosTheoryBrush = BrushData(
-  id: 28,
+  id: 47,
   name: 'chaosTheory',
   stroke: 'chaos_theory_stroke',
   densityOffset: 1.0,
@@ -1965,7 +1965,7 @@ final chaosTheoryBrush = BrushData(
 );
 
 final inkBrush = BrushData(
-  id: 33,
+  id: 48,
   name: 'ink',
   stroke: 'ink_stroke',
   densityOffset: 1.0,
@@ -2027,7 +2027,7 @@ final inkBrush = BrushData(
 
 // Fireworks Brush
 final fireworksBrush = BrushData(
-  id: 34,
+  id: 49,
   name: 'fireworks',
   stroke: 'fireworks_stroke',
   densityOffset: 30.0,
@@ -2069,7 +2069,7 @@ final fireworksBrush = BrushData(
 );
 
 final glassBrush = BrushData(
-  id: 35,
+  id: 50,
   name: 'glass',
   stroke: 'glass_stroke',
   densityOffset: 5.0,
@@ -2147,7 +2147,7 @@ final glassBrush = BrushData(
 );
 
 final embossBrush = BrushData(
-  id: 37,
+  id: 51,
   name: 'emboss',
   stroke: 'emboss_stroke',
   densityOffset: 1.0,

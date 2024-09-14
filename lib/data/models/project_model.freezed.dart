@@ -645,7 +645,7 @@ abstract class _LayerModel extends LayerModel {
 
 /// @nodoc
 mixin _$LayerStateModel {
-  String get imagePath => throw _privateConstructorUsedError;
+  DrawingPath get drawingPath => throw _privateConstructorUsedError;
 
   @JsonKey(ignore: true)
   $LayerStateModelCopyWith<LayerStateModel> get copyWith =>
@@ -658,7 +658,7 @@ abstract class $LayerStateModelCopyWith<$Res> {
           LayerStateModel value, $Res Function(LayerStateModel) then) =
       _$LayerStateModelCopyWithImpl<$Res, LayerStateModel>;
   @useResult
-  $Res call({String imagePath});
+  $Res call({DrawingPath drawingPath});
 }
 
 /// @nodoc
@@ -674,13 +674,13 @@ class _$LayerStateModelCopyWithImpl<$Res, $Val extends LayerStateModel>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? imagePath = null,
+    Object? drawingPath = null,
   }) {
     return _then(_value.copyWith(
-      imagePath: null == imagePath
-          ? _value.imagePath
-          : imagePath // ignore: cast_nullable_to_non_nullable
-              as String,
+      drawingPath: null == drawingPath
+          ? _value.drawingPath
+          : drawingPath // ignore: cast_nullable_to_non_nullable
+              as DrawingPath,
     ) as $Val);
   }
 }
@@ -693,7 +693,7 @@ abstract class _$$LayerStateModelImplCopyWith<$Res>
       __$$LayerStateModelImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({String imagePath});
+  $Res call({DrawingPath drawingPath});
 }
 
 /// @nodoc
@@ -707,13 +707,13 @@ class __$$LayerStateModelImplCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? imagePath = null,
+    Object? drawingPath = null,
   }) {
     return _then(_$LayerStateModelImpl(
-      imagePath: null == imagePath
-          ? _value.imagePath
-          : imagePath // ignore: cast_nullable_to_non_nullable
-              as String,
+      drawingPath: null == drawingPath
+          ? _value.drawingPath
+          : drawingPath // ignore: cast_nullable_to_non_nullable
+              as DrawingPath,
     ));
   }
 }
@@ -721,14 +721,14 @@ class __$$LayerStateModelImplCopyWithImpl<$Res>
 /// @nodoc
 
 class _$LayerStateModelImpl extends _LayerStateModel {
-  const _$LayerStateModelImpl({required this.imagePath}) : super._();
+  const _$LayerStateModelImpl({required this.drawingPath}) : super._();
 
   @override
-  final String imagePath;
+  final DrawingPath drawingPath;
 
   @override
   String toString() {
-    return 'LayerStateModel(imagePath: $imagePath)';
+    return 'LayerStateModel(drawingPath: $drawingPath)';
   }
 
   @override
@@ -736,12 +736,12 @@ class _$LayerStateModelImpl extends _LayerStateModel {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$LayerStateModelImpl &&
-            (identical(other.imagePath, imagePath) ||
-                other.imagePath == imagePath));
+            (identical(other.drawingPath, drawingPath) ||
+                other.drawingPath == drawingPath));
   }
 
   @override
-  int get hashCode => Object.hash(runtimeType, imagePath);
+  int get hashCode => Object.hash(runtimeType, drawingPath);
 
   @JsonKey(ignore: true)
   @override
@@ -752,12 +752,12 @@ class _$LayerStateModelImpl extends _LayerStateModel {
 }
 
 abstract class _LayerStateModel extends LayerStateModel {
-  const factory _LayerStateModel({required final String imagePath}) =
+  const factory _LayerStateModel({required final DrawingPath drawingPath}) =
       _$LayerStateModelImpl;
   const _LayerStateModel._() : super._();
 
   @override
-  String get imagePath;
+  DrawingPath get drawingPath;
   @override
   @JsonKey(ignore: true)
   _$$LayerStateModelImplCopyWith<_$LayerStateModelImpl> get copyWith =>

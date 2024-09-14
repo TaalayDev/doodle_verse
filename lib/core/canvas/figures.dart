@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import '../../data.dart';
 
 final rectangleTool = BrushData(
-  id: 29,
+  id: 52,
   name: 'rectangle',
   stroke: 'rectangle_tool',
   customPainter: (canvas, size, drawingPath) {
@@ -27,7 +27,7 @@ final rectangleTool = BrushData(
 );
 
 final circleTool = BrushData(
-  id: 30,
+  id: 53,
   name: 'circle',
   stroke: 'circle_tool',
   customPainter: (canvas, size, drawingPath) {
@@ -48,7 +48,7 @@ final circleTool = BrushData(
 );
 
 final lineTool = BrushData(
-  id: 31,
+  id: 54,
   name: 'line',
   stroke: 'line_tool',
   customPainter: (canvas, size, drawingPath) {
@@ -67,7 +67,7 @@ final lineTool = BrushData(
 );
 
 final triangleTool = BrushData(
-  id: 32,
+  id: 55,
   name: 'triangle',
   stroke: 'triangle_tool',
   customPainter: (canvas, size, drawingPath) {
@@ -92,7 +92,7 @@ final triangleTool = BrushData(
 );
 
 final arrowTool = BrushData(
-  id: 33,
+  id: 56,
   name: 'arrow',
   stroke: 'arrow_tool',
   customPainter: (canvas, size, drawingPath) {
@@ -135,7 +135,7 @@ final arrowTool = BrushData(
 );
 
 final ellipseTool = BrushData(
-  id: 34,
+  id: 57,
   name: 'ellipse',
   stroke: 'ellipse_tool',
   customPainter: (canvas, size, drawingPath) {
@@ -156,7 +156,7 @@ final ellipseTool = BrushData(
 );
 
 final polygonTool = BrushData(
-  id: 35,
+  id: 58,
   name: 'polygon',
   stroke: 'polygon_tool',
   customPainter: (canvas, size, drawingPath) {
@@ -186,7 +186,7 @@ final polygonTool = BrushData(
 );
 
 final starTool = BrushData(
-  id: 36,
+  id: 59,
   name: 'star',
   stroke: 'star_tool',
   customPainter: (canvas, size, drawingPath) {
@@ -232,7 +232,7 @@ final starTool = BrushData(
 );
 
 final heartTool = BrushData(
-  id: 37,
+  id: 60,
   name: 'heart',
   stroke: 'heart_tool',
   strokeCap: StrokeCap.round,
@@ -275,7 +275,7 @@ final heartTool = BrushData(
 );
 
 final spiralTool = BrushData(
-  id: 39,
+  id: 61,
   name: 'spiral',
   stroke: 'spiral_tool',
   customPainter: (canvas, size, drawingPath) {
@@ -319,7 +319,7 @@ final spiralTool = BrushData(
 );
 
 final cloudTool = BrushData(
-  id: 39,
+  id: 62,
   name: 'cloud',
   stroke: 'cloud_tool',
   customPainter: (canvas, size, drawingPath) {
@@ -370,7 +370,7 @@ final cloudTool = BrushData(
 );
 
 final lightningTool = BrushData(
-  id: 40,
+  id: 63,
   name: 'lightning',
   stroke: 'lightning_tool',
   customPainter: (canvas, size, drawingPath) {
@@ -431,7 +431,7 @@ final lightningTool = BrushData(
 );
 
 final pentagonTool = BrushData(
-  id: 40,
+  id: 64,
   name: 'pentagon',
   stroke: 'pentagon_tool',
   customPainter: (canvas, size, drawingPath) {
@@ -472,7 +472,7 @@ final pentagonTool = BrushData(
 
 // Hexagon Tool
 final hexagonTool = BrushData(
-  id: 41,
+  id: 65,
   name: 'hexagon',
   stroke: 'hexagon_tool',
   customPainter: (canvas, size, drawingPath) {
@@ -513,7 +513,7 @@ final hexagonTool = BrushData(
 
 // Parallelogram Tool
 final parallelogramTool = BrushData(
-  id: 42,
+  id: 66,
   name: 'parallelogram',
   stroke: 'parallelogram_tool',
   customPainter: (canvas, size, drawingPath) {
@@ -544,7 +544,7 @@ final parallelogramTool = BrushData(
 
 // Trapezoid Tool
 final trapezoidTool = BrushData(
-  id: 43,
+  id: 67,
   name: 'trapezoid',
   stroke: 'trapezoid_tool',
   customPainter: (canvas, size, drawingPath) {

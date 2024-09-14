@@ -2,7 +2,9 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:ui';
 
+import 'package:doodle_verse/core/canvas/tools_manager.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'drawing_path.dart';
 
 part 'project_model.freezed.dart';
 
@@ -105,18 +107,42 @@ class LayerModel with _$LayerModel {
 class LayerStateModel with _$LayerStateModel {
   const LayerStateModel._();
   const factory LayerStateModel({
-    required String imagePath,
+    required DrawingPath drawingPath,
   }) = _LayerStateModel;
 
   factory LayerStateModel.fromJson(Map<String, dynamic> json) {
+    final points =
+        json['points'] is String ? jsonDecode(json['points']) : json['points'];
+
     return LayerStateModel(
-      imagePath: json['imagePath'],
+      drawingPath: DrawingPath(
+        points: (points as List)
+            .map(
+              (pointJson) => DrawingPoint(
+                offset: Offset(pointJson['x'], pointJson['y']),
+              ),
+            )
+            .toList(),
+        brush: ToolsManager().getBrush(json['brush']),
+        color: Color(json['color']),
+        width: json['width'],
+      ),
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'imagePath': imagePath,
+      'points': drawingPath.points
+          .map(
+            (point) => {
+              'x': point.offset.dx,
+              'y': point.offset.dy,
+            },
+          )
+          .toList(),
+      'brush': drawingPath.brush.id,
+      'color': drawingPath.color.value,
+      'width': drawingPath.width,
     };
   }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/canvas/tools_manager.dart';
 import '../../core/canvas/shader_manager.dart';
 import '../../core.dart';
 
@@ -23,6 +24,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
   void _init() async {
     await ShaderManager().loadShaders();
+    await ToolsManager().loadTools();
     Future.delayed(const Duration(seconds: 2), _navigateToNextScreen);
   }
 
