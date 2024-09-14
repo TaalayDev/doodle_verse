@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../../core/canvas/drawing_canvas.dart';
@@ -19,7 +20,7 @@ class BrushTexturePreview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 60,
+      width: double.infinity,
       height: 60,
       decoration: BoxDecoration(
         border: Border.all(
@@ -29,10 +30,12 @@ class BrushTexturePreview extends StatelessWidget {
         color: Colors.grey[200],
         borderRadius: BorderRadius.circular(8),
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(6),
-        child: CustomPaint(
-          painter: _BrushTexturePainter(brush: brush, color: color),
+      child: RepaintBoundary(
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(6),
+          child: CustomPaint(
+            painter: _BrushTexturePainter(brush: brush, color: color),
+          ),
         ),
       ),
     );
@@ -51,21 +54,38 @@ class _BrushTexturePainter extends CustomPainter {
       brush: brush,
       color: color,
       width: 4,
-      points: [
-        DrawingPoint(offset: Offset(10, size.height / 2)),
-        DrawingPoint(
-          offset: Offset(size.width - 10, size.height / 2),
-        ),
-        DrawingPoint(
-          offset: Offset(size.width / 2, 10),
-        ),
-        DrawingPoint(
-          offset: Offset(size.width / 2, size.height - 10),
-        ),
-      ],
+      points: _createCurvedLinePoints(size),
     );
 
     DrawingCanvas().drawPath(canvas, size, drawingPath);
+  }
+
+  List<DrawingPoint> _createCurvedLinePoints(Size size) {
+    final points = <DrawingPoint>[];
+
+    final double width = size.width;
+    final double height = size.height;
+    final double midWidth = width / 2;
+    final double midHeight = height / 2;
+    final double quarterWidth = width / 4;
+    final double quarterHeight = height / 4;
+    final double eighthWidth = width / 8;
+
+    points.add(DrawingPoint(offset: Offset(5, midHeight)));
+    points.add(
+        DrawingPoint(offset: Offset(eighthWidth, midHeight - quarterHeight)));
+    points.add(DrawingPoint(offset: Offset(quarterWidth, midHeight)));
+    points.add(DrawingPoint(
+        offset: Offset(eighthWidth * 3, midHeight + quarterHeight)));
+    points.add(DrawingPoint(offset: Offset(midWidth, midHeight)));
+    points.add(DrawingPoint(
+        offset: Offset(eighthWidth * 5, midHeight - quarterHeight)));
+    points.add(DrawingPoint(offset: Offset(quarterWidth * 3, midHeight)));
+    points.add(DrawingPoint(
+        offset: Offset(eighthWidth * 7, midHeight + quarterHeight)));
+    points.add(DrawingPoint(offset: Offset(width, midHeight)));
+
+    return points;
   }
 
   @override

@@ -132,19 +132,22 @@ class ProjectCard extends StatelessWidget {
           Expanded(
             child: ClipRRect(
               borderRadius: BorderRadius.circular(8),
-              child: image != null
-                  ? Image.file(
-                      image!,
-                      fit: BoxFit.fitHeight,
-                      width: double.infinity,
-                    )
-                  : const Center(
-                      child: Icon(
-                        Icons.image,
-                        size: 64,
-                        color: Colors.grey,
+              child: Container(
+                color: Colors.white,
+                child: image != null
+                    ? Image.file(
+                        image!,
+                        fit: BoxFit.fitHeight,
+                        width: double.infinity,
+                      )
+                    : const Center(
+                        child: Icon(
+                          Icons.image,
+                          size: 64,
+                          color: Colors.grey,
+                        ),
                       ),
-                    ),
+              ),
             ),
           ),
           const SizedBox(height: 8),

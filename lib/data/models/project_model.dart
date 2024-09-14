@@ -79,7 +79,7 @@ class LayerModel with _$LayerModel {
       isVisible: json['isVisible'] == 1,
       isLocked: json['isLocked'] == 1,
       isBackground: json['isBackground'] == 1,
-      opacity: json['opacity'],
+      opacity: json['opacity'] ?? 1.0,
       imagePath: json['imagePath'],
       prevStates: (json['prevLayerStates'] as List)
           .map((stateJson) => LayerStateModel.fromJson(stateJson))

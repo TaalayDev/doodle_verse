@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:ui' as ui;
 
+import 'package:doodle_verse/core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -136,8 +137,7 @@ class _DrawBodyState extends State<DrawBody> {
     }
   }
 
-  late final FocusNode focusNode = FocusNode()
-    ..addListener(() => print('Has focus: ${focusNode.hasFocus}'));
+  late final FocusNode focusNode = FocusNode();
 
   @override
   Widget build(BuildContext context) {
@@ -429,10 +429,7 @@ class _DrawBodyState extends State<DrawBody> {
   }
 
   void _showBrushPicker() {
-    final brushes = [
-      widget.tools.pencil,
-      ...widget.tools.brushes,
-    ];
+    final brushes = widget.tools.brushes;
 
     showModalBottomSheet(
       context: context,
@@ -440,24 +437,33 @@ class _DrawBodyState extends State<DrawBody> {
         return Container(
           padding: const EdgeInsets.all(20),
           child: GridView.builder(
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 3,
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: MediaQuery.sizeOf(context).adaptiveValue(
+                3,
+                {
+                  ScreenSize.md: 3,
+                  ScreenSize.lg: 3,
+                  ScreenSize.xl: 3,
+                },
+              ),
               crossAxisSpacing: 10,
               mainAxisSpacing: 10,
-              childAspectRatio: 1,
+              mainAxisExtent: 90,
             ),
             itemCount: brushes.length,
             shrinkWrap: true,
             itemBuilder: (context, index) {
               final brush = brushes[index];
-              return GestureDetector(
+              return InkWell(
                 onTap: () {
                   setState(() {
                     _brush = brush;
                   });
                   Navigator.pop(context);
                 },
+                borderRadius: BorderRadius.circular(10),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     BrushTexturePreview(
                       brush: brush,
