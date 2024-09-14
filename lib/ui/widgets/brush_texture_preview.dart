@@ -1,6 +1,6 @@
-import 'package:doodle_verse/ui/widgets/drawing_painter.dart';
 import 'package:flutter/material.dart';
 
+import '../../core/canvas/drawing_canvas.dart';
 import '../../data/models/drawing_path.dart';
 import '../../data.dart';
 
@@ -52,30 +52,20 @@ class _BrushTexturePainter extends CustomPainter {
       color: color,
       width: 4,
       points: [
-        (
-          offset: Offset(10, size.height / 2),
-          randomOffset: null,
-          randomSize: null
-        ),
-        (
+        DrawingPoint(offset: Offset(10, size.height / 2)),
+        DrawingPoint(
           offset: Offset(size.width - 10, size.height / 2),
-          randomOffset: null,
-          randomSize: null
         ),
-        (
+        DrawingPoint(
           offset: Offset(size.width / 2, 10),
-          randomOffset: null,
-          randomSize: null
         ),
-        (
+        DrawingPoint(
           offset: Offset(size.width / 2, size.height - 10),
-          randomOffset: null,
-          randomSize: null
         ),
       ],
     );
 
-    DrawingPainter([], drawingPath).paint(canvas, size);
+    DrawingCanvas().drawPath(canvas, drawingPath);
   }
 
   @override

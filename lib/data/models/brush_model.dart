@@ -1,13 +1,13 @@
 import 'dart:ui';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-import '../../config/assets.dart';
 import 'drawing_path.dart';
 
 part 'brush_model.freezed.dart';
 
 @freezed
 class BrushData with _$BrushData {
+  const BrushData._();
   const factory BrushData({
     required int id,
     required String name,
@@ -25,7 +25,6 @@ class BrushData with _$BrushData {
     @Default(true) bool useBrushWidthDensity,
     @Default([0, 0]) List<int> random,
     @Default([0, 0]) List<int> sizeRandom,
-    List<double> Function()? randoms,
     MaskFilter? maskFilter,
     Path Function(double width, Offset, List<double>)? pathEffect,
     void Function(Canvas canvas, DrawingPath drawingPath)? customPainter,

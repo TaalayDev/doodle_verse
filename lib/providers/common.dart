@@ -13,6 +13,10 @@ final databaseProvider = Provider((ref) => DatabaseHelper.instance);
 
 typedef ToolsData = ({
   BrushData pencil,
+  BrushData softPencil,
+  BrushData hardPencil,
+  BrushData sketchyPencil,
+  BrushData coloredPencil,
   BrushData defaultBrush,
   BrushData marker,
   BrushData watercolor,
@@ -83,6 +87,10 @@ class Tools extends _$Tools {
   Future<ToolsData> build() async {
     return (
       pencil: await pencil,
+      softPencil: softPencilBrush,
+      hardPencil: hardPencilBrush,
+      sketchyPencil: sketchyPencilBrush,
+      coloredPencil: coloredPencilBrush,
       defaultBrush: defaultBrush,
       marker: await marker,
       watercolor: watercolor,

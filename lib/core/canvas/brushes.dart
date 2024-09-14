@@ -31,6 +31,118 @@ Future<BrushData> get pencil async => BrushData(
       brush: await _loadUIImage(Assets.images.pencil),
     );
 
+final softPencilBrush = BrushData(
+  id: 42,
+  name: 'soft pencil',
+  stroke: 'soft_pencil_stroke',
+  densityOffset: 1.0,
+  customPainter: (canvas, drawingPath) {
+    final paint = Paint()
+      ..color = drawingPath.color.withOpacity(0.3)
+      ..strokeWidth = drawingPath.width * 0.5
+      ..strokeCap = StrokeCap.round
+      ..style = PaintingStyle.stroke;
+
+    for (int i = 0; i < drawingPath.points.length - 1; i++) {
+      final p1 = drawingPath.points[i].offset;
+      final p2 = drawingPath.points[i + 1].offset;
+      for (int j = 0; j < 3; j++) {
+        final offset = Offset(
+          (Random().nextDouble() - 0.5) * drawingPath.width * 0.5,
+          (Random().nextDouble() - 0.5) * drawingPath.width * 0.5,
+        );
+        canvas.drawLine(p1 + offset, p2 + offset, paint);
+      }
+    }
+  },
+);
+
+final hardPencilBrush = BrushData(
+  id: 43,
+  name: 'hard pencil',
+  stroke: 'hard_pencil_stroke',
+  densityOffset: 1.0,
+  customPainter: (canvas, drawingPath) {
+    final paint = Paint()
+      ..color = drawingPath.color
+      ..strokeWidth = drawingPath.width * 0.3
+      ..strokeCap = StrokeCap.square
+      ..style = PaintingStyle.stroke;
+
+    for (int i = 0; i < drawingPath.points.length - 1; i++) {
+      final p1 = drawingPath.points[i].offset;
+      final p2 = drawingPath.points[i + 1].offset;
+      canvas.drawLine(p1, p2, paint);
+    }
+  },
+);
+
+final sketchyPencilBrush = BrushData(
+  id: 44,
+  name: 'sketchy pencil',
+  stroke: 'sketchy_pencil_stroke',
+  densityOffset: 2.0,
+  customPainter: (canvas, drawingPath) {
+    final paint = Paint()
+      ..color = drawingPath.color.withOpacity(0.4)
+      ..strokeWidth = drawingPath.width * 0.2
+      ..strokeCap = StrokeCap.round
+      ..style = PaintingStyle.stroke;
+
+    for (int i = 0; i < drawingPath.points.length - 1; i++) {
+      final p1 = drawingPath.points[i].offset;
+      final p2 = drawingPath.points[i + 1].offset;
+      for (int j = 0; j < 4; j++) {
+        final offset1 = Offset(
+          (Random().nextDouble() - 0.5) * drawingPath.width,
+          (Random().nextDouble() - 0.5) * drawingPath.width,
+        );
+        final offset2 = Offset(
+          (Random().nextDouble() - 0.5) * drawingPath.width,
+          (Random().nextDouble() - 0.5) * drawingPath.width,
+        );
+        canvas.drawLine(p1 + offset1, p2 + offset2, paint);
+      }
+    }
+  },
+);
+
+final coloredPencilBrush = BrushData(
+  id: 45,
+  name: 'colored pencil',
+  stroke: 'colored_pencil_stroke',
+  densityOffset: 1.5,
+  customPainter: (canvas, drawingPath) {
+    final paint = Paint()
+      ..color = drawingPath.color
+      ..strokeWidth = drawingPath.width * 0.4
+      ..strokeCap = StrokeCap.round
+      ..style = PaintingStyle.stroke;
+
+    for (int i = 0; i < drawingPath.points.length - 1; i++) {
+      final p1 = drawingPath.points[i].offset;
+      final p2 = drawingPath.points[i + 1].offset;
+
+      // Main stroke
+      canvas.drawLine(p1, p2, paint);
+
+      // Texture lines
+      final perpendicular = (p2 - p1).dx != 0 || (p2 - p1).dy != 0
+          ? Offset((p2 - p1).dy, -(p2 - p1).dx).normalized()
+          : Offset.zero;
+
+      for (int j = 0; j < 3; j++) {
+        final offset = perpendicular * (j - 1) * drawingPath.width * 0.2;
+        canvas.drawLine(
+          p1 + offset,
+          p2 + offset,
+          paint..color = drawingPath.color.withOpacity(0.3),
+        );
+      }
+    }
+  },
+);
+
 const defaultBrush = BrushData(
   id: 0,
   name: 'Default',
@@ -64,7 +176,9 @@ final watercolor = BrushData(
   customPainter: (canvas, drawingPath) {
     final path = Path();
     path.moveTo(
-        drawingPath.points.first.offset.dx, drawingPath.points.first.offset.dy);
+      drawingPath.points.first.offset.dx,
+      drawingPath.points.first.offset.dy,
+    );
     for (int i = 1; i < drawingPath.points.length; i++) {
       final p0 = drawingPath.points[i - 1];
       final p1 = drawingPath.points[i];
@@ -109,6 +223,7 @@ const eraser = BrushData(
   random: [-1, 1],
   sizeRandom: [-3, 3],
   useBrushWidthDensity: false,
+  blendMode: ui.BlendMode.clear,
 );
 
 final crayon = BrushData(
@@ -160,7 +275,6 @@ final sprayPaint = BrushData(
   densityOffset: 5.0,
   random: [-5, 5],
   sizeRandom: [-5, 5],
-  randoms: () => [Random().nextDouble()],
   customPainter: (canvas, drawingPath) {
     final random = Random();
     final paint = Paint()
@@ -201,7 +315,6 @@ final charcoal = BrushData(
   strokeJoin: ui.StrokeJoin.bevel,
   random: [-3, 3],
   sizeRandom: [-2, 2],
-  randoms: () => [Random().nextDouble(), Random().nextDouble()],
   customPainter: (canvas, drawingPath) {
     final paint = Paint()
       ..color = drawingPath.color.withOpacity(0.5)
@@ -247,15 +360,6 @@ final sketchy = BrushData(
   name: 'sketchy',
   stroke: 'sketchy_stroke',
   densityOffset: 30,
-  randoms: () => [
-    Random().nextDouble(),
-    Random().nextDouble(),
-    Random().nextDouble(),
-    Random().nextDouble(),
-    Random().nextDouble(),
-    Random().nextDouble(),
-    Random().nextDouble(),
-  ],
   customPainter: (canvas, drawingPath) {
     final random = Random();
     final paint = Paint()
@@ -389,16 +493,14 @@ final bubbleBrush = BrushData(
   name: 'bubble',
   stroke: 'bubble_stroke',
   densityOffset: 20,
-  randoms: () => [
-    Random().nextDouble(),
-    Random().nextDouble(),
-    Random().nextDouble(),
-  ],
   customPainter: (canvas, drawingPath) {
     for (final point in drawingPath.points) {
-      final random1 = point.randomOffset?[0] ?? 0;
-      final random2 = point.randomOffset?[1] ?? 0;
-      final random3 = point.randomOffset?[2] ?? 0;
+      final random1 =
+          drawingPath.getRandom([point.offset.dx, point.offset.dy, 1]);
+      final random2 =
+          drawingPath.getRandom([point.offset.dy, point.offset.dx, 2]);
+      final random3 =
+          drawingPath.getRandom([point.offset.dx, point.offset.dy, 3]);
 
       final paint = Paint()
         ..color = drawingPath.color.withOpacity(0.3)
@@ -409,11 +511,7 @@ final bubbleBrush = BrushData(
           (drawingPath.width / 2) + random1 * (drawingPath.width);
 
       canvas.drawCircle(
-        point.offset +
-            Offset(
-              random2 * 10 - 5,
-              random3 * 10 - 5,
-            ),
+        point.offset + Offset(random2 * 10 - 5, random3 * 10 - 5),
         bubbleRadius,
         paint,
       );
@@ -426,12 +524,6 @@ final glitterBrush = BrushData(
   name: 'glitter',
   stroke: 'glitter_stroke',
   densityOffset: 20,
-  randoms: () => [
-    Random().nextDouble(),
-    Random().nextDouble(),
-    Random().nextDouble(),
-    Random().nextDouble(),
-  ],
   customPainter: (canvas, drawingPath) {
     for (final point in drawingPath.points) {
       final random1 = point.randomOffset?[0] ?? 0;
@@ -514,11 +606,6 @@ final sparkleBrush = BrushData(
   name: 'sparkle',
   stroke: 'sparkle_stroke',
   densityOffset: 5.0,
-  randoms: () => [
-    Random().nextDouble(), // Random size
-    Random().nextDouble(), // Random rotation
-    Random().nextDouble(), // Random opacity
-  ],
   customPainter: (canvas, drawingPath) {
     final random = Random();
     final paint = Paint()
@@ -559,12 +646,6 @@ final leafBrush = BrushData(
   name: 'leaf',
   stroke: 'leaf_stroke',
   densityOffset: 15.0,
-  randoms: () => [
-    Random().nextDouble(), // Random size
-    Random().nextDouble(), // Random rotation
-    Random().nextDouble(), // Random color variation
-    Random().nextDouble(), // Random skew
-  ],
   customPainter: (canvas, drawingPath) {
     final random = Random();
     for (final point in drawingPath.points) {
@@ -619,12 +700,6 @@ final grassBrush = BrushData(
   name: 'grass',
   stroke: 'grass_stroke',
   densityOffset: 8.0,
-  randoms: () => [
-    Random().nextDouble(), // Random length
-    Random().nextDouble(), // Random angle
-    Random().nextDouble(), // Random curvature
-    Random().nextDouble(), // Random color variation
-  ],
   customPainter: (canvas, drawingPath) {
     for (final point in drawingPath.points) {
       final randomLength = point.randomOffset?[0] ?? Random().nextDouble();
@@ -747,7 +822,6 @@ final mosaicBrush = BrushData(
   name: 'mosaic',
   stroke: 'mosaic_stroke',
   densityOffset: 10.0,
-  randoms: () => List.generate(3, (_) => Random().nextDouble()),
   customPainter: (canvas, drawingPath) {
     for (final point in drawingPath.points) {
       final size = drawingPath.width * 1.5;
@@ -785,7 +859,6 @@ final splatBrush = BrushData(
   name: 'splat',
   stroke: 'splat_stroke',
   densityOffset: 30.0,
-  randoms: () => List.generate(5, (_) => Random().nextDouble()),
   customPainter: (canvas, drawingPath) {
     for (final point in drawingPath.points) {
       final center = point.offset;
@@ -866,7 +939,6 @@ final electricBrush = BrushData(
   name: 'electric',
   stroke: 'electric_stroke',
   densityOffset: 5.0,
-  randoms: () => List.generate(4, (_) => Random().nextDouble()),
   customPainter: (canvas, drawingPath) {
     for (int i = 1; i < drawingPath.points.length; i++) {
       final start = drawingPath.points[i - 1].offset;
@@ -914,11 +986,6 @@ final furBrush = BrushData(
   name: 'fur',
   stroke: 'fur_stroke',
   densityOffset: 3.0,
-  randoms: () => [
-    Random().nextDouble(), // Random length
-    Random().nextDouble(), // Random angle
-    Random().nextDouble(), // Random color variation
-  ],
   customPainter: (canvas, drawingPath) {
     final random = Random();
     for (final point in drawingPath.points) {
@@ -948,7 +1015,6 @@ final galaxyBrush = BrushData(
   name: 'galaxy',
   stroke: 'galaxy_stroke',
   densityOffset: 10.0,
-  randoms: () => List.generate(20, (_) => Random().nextDouble()),
   customPainter: (canvas, drawingPath) {
     final random = Random();
     for (final point in drawingPath.points) {
@@ -1004,7 +1070,6 @@ final fractalBrush = BrushData(
   name: 'fractal',
   stroke: 'fractal_stroke',
   densityOffset: 20.0,
-  randoms: () => List.generate(5, (_) => Random().nextDouble()),
   customPainter: (canvas, drawingPath) {
     void drawFractal(Offset start, Offset end, int depth, double width) {
       if (depth == 0 || width < 0.5) {
@@ -1045,12 +1110,6 @@ final fireBrush = BrushData(
   name: 'fire',
   stroke: 'fire_stroke',
   densityOffset: 10.0,
-  randoms: () => [
-    Random().nextDouble(), // Random size
-    Random().nextDouble(), // Random angle
-    Random().nextDouble(), // Random opacity
-    Random().nextDouble(), // Random color variation
-  ],
   customPainter: (canvas, drawingPath) {
     final random = Random();
     for (final point in drawingPath.points) {
@@ -1108,11 +1167,6 @@ final snowflakeBrush = BrushData(
   name: 'snowflake',
   stroke: 'snowflake_stroke',
   densityOffset: 15.0,
-  randoms: () => [
-    Random().nextDouble(), // Random size
-    Random().nextDouble(), // Random rotation
-    Random().nextDouble(), // Random opacity
-  ],
   customPainter: (canvas, drawingPath) {
     final random = Random();
     for (final point in drawingPath.points) {
@@ -1166,11 +1220,6 @@ final cloudBrush = BrushData(
   name: 'cloud',
   stroke: 'cloud_stroke',
   densityOffset: 5.0,
-  randoms: () => [
-    Random().nextDouble(), // Random size
-    Random().nextDouble(), // Random offset X
-    Random().nextDouble(), // Random offset Y
-  ],
   customPainter: (canvas, drawingPath) {
     final random = Random();
     for (final point in drawingPath.points) {
@@ -1215,11 +1264,6 @@ final lightningBrush = BrushData(
   name: 'lightning',
   stroke: 'lightning_stroke',
   densityOffset: 25.0,
-  randoms: () => [
-    Random().nextDouble(), // Random length
-    Random().nextDouble(), // Random angle
-    Random().nextDouble(), // Random jaggedness
-  ],
   customPainter: (canvas, drawingPath) {
     for (final point in drawingPath.points) {
       final randomLength = point.randomOffset?[0] ?? Random().nextDouble();
@@ -1266,11 +1310,6 @@ final featherBrush = BrushData(
   name: 'feather',
   stroke: 'feather_stroke',
   densityOffset: 15.0,
-  randoms: () => [
-    Random().nextDouble(), // Random size
-    Random().nextDouble(), // Random rotation
-    Random().nextDouble(), // Random skew
-  ],
   customPainter: (canvas, drawingPath) {
     final random = Random();
     for (final point in drawingPath.points) {
@@ -1340,11 +1379,6 @@ final galaxyBrush1 = BrushData(
   name: 'galaxy',
   stroke: 'galaxy_stroke',
   densityOffset: 20.0,
-  randoms: () => [
-    Random().nextDouble(), // Random star size
-    Random().nextDouble(), // Random opacity
-    Random().nextDouble(), // Random color shift
-  ],
   customPainter: (canvas, drawingPath) {
     final random = Random();
     for (final point in drawingPath.points) {
@@ -1404,11 +1438,6 @@ final confettiBrush = BrushData(
   name: 'confetti',
   stroke: 'confetti_stroke',
   densityOffset: 10.0,
-  randoms: () => [
-    Random().nextDouble(), // Random size
-    Random().nextDouble(), // Random rotation
-    Random().nextDouble(), // Random color
-  ],
   customPainter: (canvas, drawingPath) {
     final random = Random();
     for (final point in drawingPath.points) {
@@ -1532,11 +1561,6 @@ final stainedGlassBrush = BrushData(
   name: 'stainedGlass',
   stroke: 'stained_glass_stroke',
   densityOffset: 20.0,
-  randoms: () => [
-    Random().nextDouble(), // Random color
-    Random().nextDouble(), // Random shape
-    Random().nextDouble(), // Random rotation
-  ],
   customPainter: (canvas, drawingPath) {
     final random = Random();
     for (final point in drawingPath.points) {
@@ -1605,7 +1629,6 @@ final ribbonBrush = BrushData(
   name: 'ribbon',
   stroke: 'ribbon_stroke',
   densityOffset: 2.0,
-  randoms: () => List.generate(3, (_) => Random().nextDouble()),
   customPainter: (canvas, drawingPath) {
     if (drawingPath.points.length < 2) return;
 
@@ -1671,7 +1694,6 @@ final particleFieldBrush = BrushData(
   name: 'particleField',
   stroke: 'particle_field_stroke',
   densityOffset: 10.0,
-  randoms: () => List.generate(50, (_) => Random().nextDouble()),
   customPainter: (canvas, drawingPath) {
     for (final point in drawingPath.points) {
       final center = point.offset;
@@ -1756,7 +1778,6 @@ final voronoiBrush = BrushData(
   name: 'voronoi',
   stroke: 'voronoi_stroke',
   densityOffset: 20.0,
-  randoms: () => List.generate(20, (_) => Random().nextDouble()),
   customPainter: (canvas, drawingPath) {
     final cellPoints = <Offset>[];
     final cellColors = <Color>[];
@@ -1811,7 +1832,6 @@ final chaosTheoryBrush = BrushData(
   name: 'chaosTheory',
   stroke: 'chaos_theory_stroke',
   densityOffset: 1.0,
-  randoms: () => List.generate(3, (_) => Random().nextDouble()),
   customPainter: (canvas, drawingPath) {
     if (drawingPath.points.length < 2) return;
 
@@ -1862,7 +1882,6 @@ final inkBrush = BrushData(
   name: 'ink',
   stroke: 'ink_stroke',
   densityOffset: 1.0,
-  randoms: () => List.generate(5, (_) => Random().nextDouble()),
   customPainter: (canvas, drawingPath) {
     if (drawingPath.points.length < 2) return;
 
@@ -1921,7 +1940,6 @@ final fireworksBrush = BrushData(
   name: 'fireworks',
   stroke: 'fireworks_stroke',
   densityOffset: 30.0,
-  randoms: () => List.generate(100, (_) => Random().nextDouble()),
   customPainter: (canvas, drawingPath) {
     for (final point in drawingPath.points) {
       final center = point.offset;
@@ -1959,7 +1977,6 @@ final glassBrush = BrushData(
   name: 'glass',
   stroke: 'glass_stroke',
   densityOffset: 5.0,
-  randoms: () => List.generate(10, (_) => Random().nextDouble()),
   customPainter: (canvas, drawingPath) {
     if (drawingPath.points.length < 2) return;
 

@@ -30,7 +30,9 @@ class DrawingCanvas {
     if (drawingPath.points.length < 2) {
       return;
     }
-    if (drawingPath.brush.pathEffect != null) {
+    if (drawingPath.image case var image?) {
+      canvas.drawImage(image, Offset.zero, paint);
+    } else if (drawingPath.brush.pathEffect != null) {
       drawPathEffect(canvas, drawingPath, paint);
     } else if (drawingPath.brush.brush != null) {
       drawTexturedPath(canvas, path, paint, drawingPath);

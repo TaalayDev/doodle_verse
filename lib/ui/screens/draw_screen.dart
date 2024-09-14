@@ -9,6 +9,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 
 import '../../core/canvas/drawing_canvas.dart';
+import '../../core/canvas/drawing_controller.dart';
 import '../../data.dart';
 import '../../data/models/drawing_path.dart';
 import '../../providers/common.dart';
@@ -66,6 +67,10 @@ class DrawBody extends StatefulWidget {
 class _DrawBodyState extends State<DrawBody> {
   late final _brushes = [
     widget.tools.pencil,
+    widget.tools.softPencil,
+    widget.tools.hardPencil,
+    widget.tools.sketchyPencil,
+    widget.tools.coloredPencil,
     widget.tools.defaultBrush,
     widget.tools.marker,
     widget.tools.watercolor,
@@ -112,10 +117,7 @@ class _DrawBodyState extends State<DrawBody> {
     widget.tools.glassBrush
   ];
 
-  List<ui.Image> _redoStack = [];
-  List<ui.Image> _paths = [];
-  DrawingPath? _currentPath;
-
+  late final DrawingController _drawingController;
   late BrushData _brush = widget.tools.pencil;
   Color _currentColor = const Color(0xFF333333);
   double _brushSize = 8.0;
@@ -127,6 +129,7 @@ class _DrawBodyState extends State<DrawBody> {
   @override
   void initState() {
     super.initState();
+    _drawingController = DrawingController(context);
     _loadProject();
   }
 
@@ -140,15 +143,15 @@ class _DrawBodyState extends State<DrawBody> {
     final undoStates = layer.prevStates;
     final redoStates = layer.redoStates;
 
-    for (final state in undoStates) {
-      final image = await _loadImageFromFile(state.imagePath);
-      _paths.add(image);
-    }
+    // for (final state in undoStates) {
+    //   final image = await _loadImageFromFile(state.imagePath);
+    //   _paths.add(image);
+    // }
 
-    for (final state in redoStates) {
-      final image = await _loadImageFromFile(state.imagePath);
-      _redoStack.add(image);
-    }
+    // for (final state in redoStates) {
+    //   final image = await _loadImageFromFile(state.imagePath);
+    //   _redoStack.add(image);
+    // }
     setState(() {});
   }
 
@@ -171,7 +174,7 @@ class _DrawBodyState extends State<DrawBody> {
     final canvas = Canvas(recorder);
     final size = MediaQuery.of(context).size;
 
-    final painter = DrawingPainter(_paths, null);
+    final painter = DrawingPainter(_drawingController);
     painter.paint(canvas, size);
 
     final picture = recorder.endRecording();
@@ -206,7 +209,7 @@ class _DrawBodyState extends State<DrawBody> {
               onPressed: _undo,
               child: Icon(
                 Feather.rotate_ccw,
-                color: _paths.isEmpty ? Colors.grey : null,
+                color: !_drawingController.canUndo ? Colors.grey : null,
               ),
             ),
             const SizedBox(width: 10),
@@ -214,7 +217,7 @@ class _DrawBodyState extends State<DrawBody> {
               onPressed: _redo,
               child: Icon(
                 Feather.rotate_cw,
-                color: _redoStack.isEmpty ? Colors.grey : null,
+                color: !_drawingController.canRedo ? Colors.grey : null,
               ),
             ),
           ],
@@ -240,8 +243,7 @@ class _DrawBodyState extends State<DrawBody> {
                 onPanEnd: _onPanEnd,
                 child: CustomPaint(
                   painter: DrawingPainter(
-                    _paths,
-                    _currentPath,
+                    _drawingController,
                   ),
                   size: Size.infinite,
                 ),
@@ -544,51 +546,21 @@ class _DrawBodyState extends State<DrawBody> {
   }
 
   void _onPanStart(DragStartDetails details) {
-    setState(() {
-      _currentPath = DrawingPath(
-        brush: _brush,
-        color: _brush.id == widget.tools.eraser.id
-            ? Theme.of(context).scaffoldBackgroundColor
-            : _currentColor,
-        width: _brushSize,
-        points: [
-          (
-            offset: details.localPosition,
-            randomOffset: _brush.randoms?.call(),
-            randomSize: null,
-          )
-        ],
-      );
-    });
+    _drawingController.startPath(
+      _brush,
+      _currentColor,
+      _brushSize,
+      details.localPosition,
+    );
   }
 
   void _onPanUpdate(DragUpdateDetails details) {
-    final random = Random().nextDouble() * _brush.random[1] + _brush.random[0];
-
-    final position = details.localPosition;
-    final offset = Offset(position.dx + random, position.dy + random);
-
-    setState(() {
-      _currentPath!.points.add((
-        offset: offset,
-        randomOffset: _brush.randoms?.call() ??
-            [
-              Random().nextDouble() +
-                  (_brush.random.isNotEmpty
-                      ? _brush.random[1] + _brush.random[0]
-                      : 0),
-              Random().nextDouble() +
-                  (_brush.random.isNotEmpty
-                      ? _brush.random[1] + _brush.random[0]
-                      : 0),
-            ],
-        randomSize: _brushSize,
-      ));
-    });
+    _drawingController.addPoint(details.localPosition, _brush, _brushSize);
   }
 
   void _onPanEnd(DragEndDetails details) async {
-    _renderPathsToImage(_currentPath);
+    // _renderPathsToImage(_currentPath);
+    _drawingController.endPath();
   }
 
   void _renderPathsToImage(DrawingPath? drawingPath) async {
@@ -614,19 +586,19 @@ class _DrawBodyState extends State<DrawBody> {
 
     await _saveLayerState(image);
 
-    setState(() {
-      _paths.add(image);
-      _currentPath = null;
-      _redoStack.clear();
-    });
+    // setState(() {
+    //   _paths.add(image);
+    //   _currentPath = null;
+    //   _redoStack.clear();
+    // });
   }
 
   Future<void> _saveLayerState(ui.Image image) async {
     _projectNotifier.addNewState(widget.project.layers.last.id, image);
 
-    setState(() {
-      _redoStack.clear();
-    });
+    // setState(() {
+    //   _redoStack.clear();
+    // });
   }
 
   void _setBrush(BrushData brush) {
@@ -647,27 +619,24 @@ class _DrawBodyState extends State<DrawBody> {
   }
 
   void _undo() {
-    if (_paths.isNotEmpty) {
-      setState(() {
-        final image = _paths.removeLast();
-        _redoStack.add(image);
-      });
+    _drawingController.undo();
 
-      final currentLayer = widget.project.layers.last;
-      _projectNotifier.undoState(currentLayer.id);
-    }
+    final currentLayer = widget.project.layers.last;
+    _projectNotifier.undoState(currentLayer.id);
   }
 
   void _redo() {
-    if (_redoStack.isNotEmpty) {
-      setState(() {
-        final image = _redoStack.removeLast();
-        _paths.add(image);
-      });
+    _drawingController.redo();
 
-      final currentLayer = widget.project.layers.last;
-      _projectNotifier.redoState(currentLayer.id);
-    }
+    final currentLayer = widget.project.layers.last;
+    _projectNotifier.redoState(currentLayer.id);
+  }
+
+  @override
+  void dispose() {
+    _drawingController.dispose();
+
+    super.dispose();
   }
 }
 

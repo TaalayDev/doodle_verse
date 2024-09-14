@@ -32,7 +32,6 @@ mixin _$BrushData {
   bool get useBrushWidthDensity => throw _privateConstructorUsedError;
   List<int> get random => throw _privateConstructorUsedError;
   List<int> get sizeRandom => throw _privateConstructorUsedError;
-  List<double> Function()? get randoms => throw _privateConstructorUsedError;
   MaskFilter? get maskFilter => throw _privateConstructorUsedError;
   Path Function(double, Offset, List<double>)? get pathEffect =>
       throw _privateConstructorUsedError;
@@ -66,7 +65,6 @@ abstract class $BrushDataCopyWith<$Res> {
       bool useBrushWidthDensity,
       List<int> random,
       List<int> sizeRandom,
-      List<double> Function()? randoms,
       MaskFilter? maskFilter,
       Path Function(double, Offset, List<double>)? pathEffect,
       void Function(Canvas, DrawingPath)? customPainter});
@@ -101,7 +99,6 @@ class _$BrushDataCopyWithImpl<$Res, $Val extends BrushData>
     Object? useBrushWidthDensity = null,
     Object? random = null,
     Object? sizeRandom = null,
-    Object? randoms = freezed,
     Object? maskFilter = freezed,
     Object? pathEffect = freezed,
     Object? customPainter = freezed,
@@ -171,10 +168,6 @@ class _$BrushDataCopyWithImpl<$Res, $Val extends BrushData>
           ? _value.sizeRandom
           : sizeRandom // ignore: cast_nullable_to_non_nullable
               as List<int>,
-      randoms: freezed == randoms
-          ? _value.randoms
-          : randoms // ignore: cast_nullable_to_non_nullable
-              as List<double> Function()?,
       maskFilter: freezed == maskFilter
           ? _value.maskFilter
           : maskFilter // ignore: cast_nullable_to_non_nullable
@@ -216,7 +209,6 @@ abstract class _$$BrushDataImplCopyWith<$Res>
       bool useBrushWidthDensity,
       List<int> random,
       List<int> sizeRandom,
-      List<double> Function()? randoms,
       MaskFilter? maskFilter,
       Path Function(double, Offset, List<double>)? pathEffect,
       void Function(Canvas, DrawingPath)? customPainter});
@@ -249,7 +241,6 @@ class __$$BrushDataImplCopyWithImpl<$Res>
     Object? useBrushWidthDensity = null,
     Object? random = null,
     Object? sizeRandom = null,
-    Object? randoms = freezed,
     Object? maskFilter = freezed,
     Object? pathEffect = freezed,
     Object? customPainter = freezed,
@@ -319,10 +310,6 @@ class __$$BrushDataImplCopyWithImpl<$Res>
           ? _value._sizeRandom
           : sizeRandom // ignore: cast_nullable_to_non_nullable
               as List<int>,
-      randoms: freezed == randoms
-          ? _value.randoms
-          : randoms // ignore: cast_nullable_to_non_nullable
-              as List<double> Function()?,
       maskFilter: freezed == maskFilter
           ? _value.maskFilter
           : maskFilter // ignore: cast_nullable_to_non_nullable
@@ -341,7 +328,7 @@ class __$$BrushDataImplCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$BrushDataImpl implements _BrushData {
+class _$BrushDataImpl extends _BrushData {
   const _$BrushDataImpl(
       {required this.id,
       required this.name,
@@ -359,12 +346,12 @@ class _$BrushDataImpl implements _BrushData {
       this.useBrushWidthDensity = true,
       final List<int> random = const [0, 0],
       final List<int> sizeRandom = const [0, 0],
-      this.randoms,
       this.maskFilter,
       this.pathEffect,
       this.customPainter})
       : _random = random,
-        _sizeRandom = sizeRandom;
+        _sizeRandom = sizeRandom,
+        super._();
 
   @override
   final int id;
@@ -421,8 +408,6 @@ class _$BrushDataImpl implements _BrushData {
   }
 
   @override
-  final List<double> Function()? randoms;
-  @override
   final MaskFilter? maskFilter;
   @override
   final Path Function(double, Offset, List<double>)? pathEffect;
@@ -431,7 +416,7 @@ class _$BrushDataImpl implements _BrushData {
 
   @override
   String toString() {
-    return 'BrushData(id: $id, name: $name, stroke: $stroke, brush: $brush, texture: $texture, isLocked: $isLocked, isNew: $isNew, opacityDiff: $opacityDiff, colorFilter: $colorFilter, strokeCap: $strokeCap, strokeJoin: $strokeJoin, blendMode: $blendMode, densityOffset: $densityOffset, useBrushWidthDensity: $useBrushWidthDensity, random: $random, sizeRandom: $sizeRandom, randoms: $randoms, maskFilter: $maskFilter, pathEffect: $pathEffect, customPainter: $customPainter)';
+    return 'BrushData(id: $id, name: $name, stroke: $stroke, brush: $brush, texture: $texture, isLocked: $isLocked, isNew: $isNew, opacityDiff: $opacityDiff, colorFilter: $colorFilter, strokeCap: $strokeCap, strokeJoin: $strokeJoin, blendMode: $blendMode, densityOffset: $densityOffset, useBrushWidthDensity: $useBrushWidthDensity, random: $random, sizeRandom: $sizeRandom, maskFilter: $maskFilter, pathEffect: $pathEffect, customPainter: $customPainter)';
   }
 
   @override
@@ -464,7 +449,6 @@ class _$BrushDataImpl implements _BrushData {
             const DeepCollectionEquality().equals(other._random, _random) &&
             const DeepCollectionEquality()
                 .equals(other._sizeRandom, _sizeRandom) &&
-            (identical(other.randoms, randoms) || other.randoms == randoms) &&
             (identical(other.maskFilter, maskFilter) ||
                 other.maskFilter == maskFilter) &&
             (identical(other.pathEffect, pathEffect) ||
@@ -492,7 +476,6 @@ class _$BrushDataImpl implements _BrushData {
         useBrushWidthDensity,
         const DeepCollectionEquality().hash(_random),
         const DeepCollectionEquality().hash(_sizeRandom),
-        randoms,
         maskFilter,
         pathEffect,
         customPainter
@@ -505,7 +488,7 @@ class _$BrushDataImpl implements _BrushData {
       __$$BrushDataImplCopyWithImpl<_$BrushDataImpl>(this, _$identity);
 }
 
-abstract class _BrushData implements BrushData {
+abstract class _BrushData extends BrushData {
   const factory _BrushData(
           {required final int id,
           required final String name,
@@ -523,11 +506,11 @@ abstract class _BrushData implements BrushData {
           final bool useBrushWidthDensity,
           final List<int> random,
           final List<int> sizeRandom,
-          final List<double> Function()? randoms,
           final MaskFilter? maskFilter,
           final Path Function(double, Offset, List<double>)? pathEffect,
           final void Function(Canvas, DrawingPath)? customPainter}) =
       _$BrushDataImpl;
+  const _BrushData._() : super._();
 
   @override
   int get id;
@@ -561,8 +544,6 @@ abstract class _BrushData implements BrushData {
   List<int> get random;
   @override
   List<int> get sizeRandom;
-  @override
-  List<double> Function()? get randoms;
   @override
   MaskFilter? get maskFilter;
   @override
