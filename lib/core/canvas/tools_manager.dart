@@ -17,7 +17,7 @@ class ToolsManager {
   List<BrushData> get allTools => _brushes + _figures;
 
   BrushData getBrush(int id) {
-    return _brushes.firstWhere((element) => element.id == id);
+    return allTools.firstWhere((element) => element.id == id);
   }
 
   Future<void> loadTools() async {
