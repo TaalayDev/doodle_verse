@@ -50,7 +50,14 @@ class MainScreen extends HookConsumerWidget {
                   }
 
                   return GridView.count(
-                    crossAxisCount: 2,
+                    crossAxisCount: MediaQuery.sizeOf(context).adaptiveValue(
+                      2,
+                      {
+                        ScreenSize.lg: 4,
+                        ScreenSize.xl: 5,
+                        ScreenSize.md: 3,
+                      },
+                    ),
                     childAspectRatio: 1.2,
                     padding: const EdgeInsets.all(16),
                     mainAxisSpacing: 16,

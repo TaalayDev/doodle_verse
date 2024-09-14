@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:math';
 import 'dart:ui' as ui;
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
@@ -17,6 +18,7 @@ import '../../providers/projects.dart';
 import '../widgets/brush_settings_bottom_sheet.dart';
 import '../widgets/color_picker_bottom_sheet.dart';
 import '../widgets.dart';
+import '../widgets/shortcut_wrapper.dart';
 import '../widgets/drawing_painter.dart';
 
 class DrawScreen extends HookConsumerWidget {
@@ -122,6 +124,14 @@ class _DrawBodyState extends State<DrawBody> {
   Color _currentColor = const Color(0xFF333333);
   double _brushSize = 8.0;
 
+  // Variables for zoom and pan
+  double _scale = 1.0;
+  Offset _offset = Offset.zero;
+  bool _isScaling = false;
+  double _initialScale = 1.0;
+  Offset _initialOffset = Offset.zero;
+  Offset _initialFocalPoint = Offset.zero;
+
   final _canvasKey = GlobalKey();
 
   late final _projectNotifier = widget.projectNotifer;
@@ -191,61 +201,71 @@ class _DrawBodyState extends State<DrawBody> {
     }
   }
 
+  late final FocusNode focusNode = FocusNode()
+    ..addListener(() => print('Has focus: ${focusNode.hasFocus}'));
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            _saveProject();
-            Navigator.of(context).pop();
-          },
-        ),
-        title: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            MenuButton(
-              onPressed: _undo,
-              child: Icon(
-                Feather.rotate_ccw,
-                color: !_drawingController.canUndo ? Colors.grey : null,
+    return ShortcutsWrapper(
+      onUndo: _undo,
+      onRedo: _redo,
+      focusNode: focusNode,
+      child: Scaffold(
+        appBar: AppBar(
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              _saveProject();
+              Navigator.of(context).pop();
+            },
+          ),
+          title: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              MenuButton(
+                onPressed: _undo,
+                child: Icon(
+                  Feather.rotate_ccw,
+                  color: !_drawingController.canUndo ? Colors.grey : null,
+                ),
               ),
-            ),
-            const SizedBox(width: 10),
-            MenuButton(
-              onPressed: _redo,
-              child: Icon(
-                Feather.rotate_cw,
-                color: !_drawingController.canRedo ? Colors.grey : null,
+              const SizedBox(width: 10),
+              MenuButton(
+                onPressed: _redo,
+                child: Icon(
+                  Feather.rotate_cw,
+                  color: !_drawingController.canRedo ? Colors.grey : null,
+                ),
               ),
+            ],
+          ),
+          actions: [
+            IconButton(
+              icon: const Icon(Feather.layers),
+              onPressed: () {},
             ),
           ],
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Feather.layers),
-            onPressed: () {
-              // TODO: Implement fullscreen functionality
-            },
-          ),
-        ],
-      ),
-      body: Builder(builder: (context) {
-        return Stack(
+        body: Stack(
           children: [
             // Drawing Canvas
             RepaintBoundary(
               key: _canvasKey,
               child: GestureDetector(
-                onPanStart: _onPanStart,
-                onPanUpdate: _onPanUpdate,
-                onPanEnd: _onPanEnd,
-                child: CustomPaint(
-                  painter: DrawingPainter(
-                    _drawingController,
+                onScaleStart: _onScaleStart,
+                onScaleUpdate: _onScaleUpdate,
+                onScaleEnd: _onScaleEnd,
+                child: Transform(
+                  transform: Matrix4.identity()
+                    ..translate(_offset.dx, _offset.dy)
+                    ..scale(_scale),
+                  child: ColoredBox(
+                    color: Colors.white,
+                    child: CustomPaint(
+                      painter: DrawingPainter(_drawingController),
+                      size: Size.infinite,
+                    ),
                   ),
-                  size: Size.infinite,
                 ),
               ),
             ),
@@ -280,7 +300,7 @@ class _DrawBodyState extends State<DrawBody> {
                           topLeft: Radius.circular(30),
                           topRight: Radius.circular(30),
                         ),
-                        onTap: () {},
+                        onTap: _zoomIn,
                         child: const Icon(Feather.zoom_in, size: 28),
                       ),
                     ),
@@ -301,7 +321,7 @@ class _DrawBodyState extends State<DrawBody> {
                           bottomLeft: Radius.circular(30),
                           bottomRight: Radius.circular(30),
                         ),
-                        onTap: () {},
+                        onTap: _zoomOut,
                         child: const Icon(Feather.zoom_out, size: 28),
                       ),
                     ),
@@ -310,152 +330,149 @@ class _DrawBodyState extends State<DrawBody> {
               ),
             ),
           ],
-        );
-      }),
-      bottomNavigationBar: BottomAppBar(
-        height: 60,
-        color: Theme.of(context).brightness == Brightness.dark
-            ? Colors.black
-            : Colors.white,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            MenuButton(
-              onPressed: _showColorPicker,
-              child: Container(
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.fromBorderSide(
-                    BorderSide(color: Colors.grey),
+        ),
+        bottomNavigationBar: BottomAppBar(
+          height: 60,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              MenuButton(
+                onPressed: _showColorPicker,
+                child: Container(
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.fromBorderSide(
+                      BorderSide(color: Colors.grey),
+                    ),
                   ),
-                ),
-                width: 24,
-                height: 24,
-                child: Center(
-                  child: Icon(
-                    Icons.circle,
-                    size: 22,
-                    color: _currentColor,
+                  width: 24,
+                  height: 24,
+                  child: Center(
+                    child: Icon(
+                      Icons.circle,
+                      size: 22,
+                      color: _currentColor,
+                    ),
                   ),
                 ),
               ),
-            ),
-            MenuButton(
-              child: Icon(
-                Ionicons.brush_outline,
-                size: 28,
-                color: _brush.id != widget.tools.pencil.id &&
-                        _brush.id != widget.tools.eraser.id
-                    ? Theme.of(context).primaryColor
-                    : null,
+              MenuButton(
+                child: Icon(
+                  Ionicons.brush_outline,
+                  size: 28,
+                  color: _brush.id != widget.tools.pencil.id &&
+                          _brush.id != widget.tools.eraser.id
+                      ? Theme.of(context).primaryColor
+                      : null,
+                ),
+                onPressed: () async {
+                  _showBrushPicker();
+                },
               ),
-              onPressed: () async {
-                _showBrushPicker();
-              },
-            ),
-            MenuButton(
-              child: Icon(
-                Fontisto.eraser,
-                size: 26,
-                color: _brush.id == widget.tools.eraser.id
-                    ? Theme.of(context).primaryColor
-                    : null,
+              MenuButton(
+                child: Icon(
+                  Fontisto.eraser,
+                  size: 26,
+                  color: _brush.id == widget.tools.eraser.id
+                      ? Theme.of(context).primaryColor
+                      : null,
+                ),
+                onPressed: () {
+                  _setBrush(widget.tools.eraser);
+                },
               ),
-              onPressed: () {
-                _setBrush(widget.tools.eraser);
-              },
-            ),
-            MenuButton(
-              child: const Icon(
-                Feather.sliders,
+              MenuButton(
+                child: const Icon(
+                  Feather.sliders,
+                ),
+                onPressed: () {
+                  showBrushSettingsBottomSheet(
+                    context: context,
+                    brushSize: _brushSize,
+                    onBrushSizeChanged: (value) {
+                      setState(() {
+                        _brushSize = value;
+                      });
+                    },
+                  );
+                },
               ),
-              onPressed: () {
-                showBrushSettingsBottomSheet(
-                  context: context,
-                  brushSize: _brushSize,
-                  onBrushSizeChanged: (value) {
-                    setState(() {
-                      _brushSize = value;
-                    });
-                  },
-                );
-              },
-            ),
-            MenuButton(
-              child: const Icon(
-                Feather.square,
-                size: 26,
-              ),
-              onPressed: () {
-                showModalBottomSheet(
-                  context: context,
-                  builder: (context) {
-                    return Container(
-                      padding: const EdgeInsets.all(20),
-                      child: GridView.count(
-                        crossAxisCount: 4,
-                        crossAxisSpacing: 10,
-                        mainAxisSpacing: 10,
-                        shrinkWrap: true,
-                        children: [
-                          for (var brush in [
-                            widget.tools.rectangleTool,
-                            widget.tools.circleTool,
-                            widget.tools.lineTool,
-                            widget.tools.triangleTool,
-                            widget.tools.heartTool,
-                            widget.tools.starTool,
-                            widget.tools.polygonTool,
-                            widget.tools.spiralTool,
-                            widget.tools.arrowTool,
-                            widget.tools.ellipseTool,
-                            widget.tools.cloudTool,
-                            widget.tools.lightningTool,
-                            widget.tools.pentagonTool,
-                            widget.tools.hexagonTool,
-                            widget.tools.parallelogramTool,
-                            widget.tools.trapezoidTool,
-                            widget.tools.fillTool,
-                          ])
-                            MaterialInkWell(
-                              onTap: () {
-                                _setBrush(brush);
-                                Navigator.of(context).pop();
-                              },
-                              padding: const EdgeInsets.all(10),
-                              borderRadius: BorderRadius.circular(30),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    _getBrushIcon(brush),
-                                    size: 26,
-                                    color: _brush.id == brush.id
-                                        ? Theme.of(context).primaryColor
-                                        : null,
-                                  ),
-                                  const SizedBox(height: 5),
-                                  FittedBox(
-                                    child: Text(
-                                      brush.name,
-                                      style: TextStyle(
-                                        color: _brush.id == brush.id
-                                            ? Theme.of(context).primaryColor
-                                            : null,
+              MenuButton(
+                child: const Icon(
+                  Feather.square,
+                  size: 26,
+                ),
+                onPressed: () {
+                  showModalBottomSheet(
+                    context: context,
+                    builder: (context) {
+                      return Container(
+                        padding: const EdgeInsets.all(20),
+                        child: GridView.count(
+                          crossAxisCount: 4,
+                          crossAxisSpacing: 10,
+                          mainAxisSpacing: 10,
+                          shrinkWrap: true,
+                          children: [
+                            for (var brush in [
+                              widget.tools.rectangleTool,
+                              widget.tools.circleTool,
+                              widget.tools.lineTool,
+                              widget.tools.triangleTool,
+                              widget.tools.heartTool,
+                              widget.tools.starTool,
+                              widget.tools.polygonTool,
+                              widget.tools.spiralTool,
+                              widget.tools.arrowTool,
+                              widget.tools.ellipseTool,
+                              widget.tools.cloudTool,
+                              widget.tools.lightningTool,
+                              widget.tools.pentagonTool,
+                              widget.tools.hexagonTool,
+                              widget.tools.parallelogramTool,
+                              widget.tools.trapezoidTool,
+                              widget.tools.fillTool,
+                            ])
+                              MaterialInkWell(
+                                onTap: () {
+                                  _setBrush(brush);
+                                  Navigator.of(context).pop();
+                                },
+                                padding: const EdgeInsets.all(10),
+                                borderRadius: BorderRadius.circular(30),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      _getBrushIcon(brush),
+                                      size: 26,
+                                      color: _brush.id == brush.id
+                                          ? Theme.of(context).primaryColor
+                                          : null,
+                                    ),
+                                    const SizedBox(height: 5),
+                                    FittedBox(
+                                      child: Text(
+                                        brush.name,
+                                        style: TextStyle(
+                                          color: _brush.id == brush.id
+                                              ? Theme.of(context).primaryColor
+                                              : null,
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
-                            ),
-                        ],
-                      ),
-                    );
-                  },
-                );
-              },
-            ),
-          ],
+                          ],
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -545,22 +562,58 @@ class _DrawBodyState extends State<DrawBody> {
     );
   }
 
-  void _onPanStart(DragStartDetails details) {
-    _drawingController.startPath(
-      _brush,
-      _currentColor,
-      _brushSize,
-      details.localPosition,
-    );
+  // Gesture handlers for scaling and drawing
+  void _onScaleStart(ScaleStartDetails details) {
+    if (details.pointerCount == 1) {
+      // Start drawing
+      _isScaling = false;
+      final position = (details.localFocalPoint - _offset) / _scale;
+      _drawingController.startPath(
+        _brush,
+        _currentColor,
+        _brushSize,
+        position,
+      );
+    } else if (details.pointerCount == 2) {
+      // Start scaling and panning
+      _isScaling = true;
+      _initialScale = _scale;
+      _initialOffset = _offset;
+      _initialFocalPoint = details.focalPoint;
+    }
   }
 
-  void _onPanUpdate(DragUpdateDetails details) {
-    _drawingController.addPoint(details.localPosition, _brush, _brushSize);
+  void _onScaleUpdate(ScaleUpdateDetails details) {
+    if (_isScaling && details.pointerCount == 2) {
+      // Update scaling and panning
+      setState(() {
+        _scale = (_initialScale * details.scale).clamp(0.5, 5.0);
+        _offset = _initialOffset + (details.focalPoint - _initialFocalPoint);
+      });
+    } else if (!_isScaling && details.pointerCount == 1) {
+      // Continue drawing
+      final position = (details.localFocalPoint - _offset) / _scale;
+      _drawingController.addPoint(position, _brush, _brushSize);
+    }
   }
 
-  void _onPanEnd(DragEndDetails details) async {
-    // _renderPathsToImage(_currentPath);
-    _drawingController.endPath();
+  void _onScaleEnd(ScaleEndDetails details) {
+    if (!_isScaling) {
+      _drawingController.endPath();
+    }
+    _isScaling = false;
+  }
+
+  void _zoomIn() {
+    setState(() {
+      _scale = (_scale * 1.2).clamp(0.5, 5.0);
+    });
+  }
+
+  void _zoomOut() {
+    setState(() {
+      _scale = (_scale / 1.2).clamp(0.5, 5.0);
+    });
   }
 
   void _renderPathsToImage(DrawingPath? drawingPath) async {

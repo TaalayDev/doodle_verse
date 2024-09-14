@@ -25,5 +25,6 @@ class DrawingPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant DrawingPainter oldDelegate) => false;
+  bool shouldRepaint(covariant DrawingPainter oldDelegate) =>
+      oldDelegate.controller != controller;
 }

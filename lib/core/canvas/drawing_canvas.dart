@@ -1,12 +1,13 @@
-import 'dart:ui' as ui;
-
 import 'package:flutter/rendering.dart';
 
 import '../../data/models/drawing_path.dart';
-import '../extensions/offset_extensions.dart';
 
 class DrawingCanvas {
   void drawPath(Canvas canvas, Size size, DrawingPath drawingPath) {
+    if (drawingPath.points.isEmpty || drawingPath.points.length < 2) {
+      return;
+    }
+
     if (drawingPath.brush.customPainter != null) {
       drawingPath.brush.customPainter!(canvas, size, drawingPath);
       return;

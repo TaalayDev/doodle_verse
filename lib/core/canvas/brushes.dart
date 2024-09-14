@@ -25,7 +25,7 @@ Future<BrushData> get pencil async => BrushData(
       opacityDiff: 0.2,
       isNew: true,
       isLocked: true,
-      densityOffset: 5.0,
+      densityOffset: 3.0,
       strokeJoin: ui.StrokeJoin.bevel,
       random: [-1, 1],
       sizeRandom: [-3, 3],
