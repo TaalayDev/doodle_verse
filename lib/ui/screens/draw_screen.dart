@@ -574,7 +574,7 @@ class _DrawBodyState extends State<DrawBody> {
       Rect.fromLTWH(0, 0, size.width, size.height),
       Paint(),
     );
-    DrawingCanvas().drawPath(canvas, drawingPath);
+    DrawingCanvas().drawPath(canvas, size, drawingPath);
     canvas.restore();
 
     final picture = recorder.endRecording();

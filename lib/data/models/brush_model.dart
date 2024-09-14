@@ -26,7 +26,10 @@ class BrushData with _$BrushData {
     @Default([0, 0]) List<int> random,
     @Default([0, 0]) List<int> sizeRandom,
     MaskFilter? maskFilter,
-    Path Function(double width, Offset, List<double>)? pathEffect,
-    void Function(Canvas canvas, DrawingPath drawingPath)? customPainter,
+    void Function(
+      Canvas canvas,
+      Size size,
+      DrawingPath drawingPath,
+    )? customPainter,
   }) = _BrushData;
 }

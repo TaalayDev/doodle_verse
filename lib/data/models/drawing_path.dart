@@ -32,12 +32,10 @@ class DrawingPath {
 
 class DrawingPoint {
   final Offset offset;
-  final List<double>? randomOffset;
   final double? randomSize;
 
   DrawingPoint({
     required this.offset,
-    this.randomOffset,
     this.randomSize,
   });
 }

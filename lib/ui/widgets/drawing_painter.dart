@@ -16,10 +16,10 @@ class DrawingPainter extends CustomPainter {
     canvas.saveLayer(Offset.zero & size, Paint());
 
     for (var path in controller.paths) {
-      _drawingCanvas.drawPath(canvas, path);
+      _drawingCanvas.drawPath(canvas, size, path);
     }
     if (controller.currentPath != null) {
-      _drawingCanvas.drawPath(canvas, controller.currentPath!);
+      _drawingCanvas.drawPath(canvas, size, controller.currentPath!);
     }
     canvas.restore();
   }

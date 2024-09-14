@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/canvas/shader_manager.dart';
 import '../../core.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -21,16 +22,17 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   void _init() async {
+    await ShaderManager().loadShaders();
     Future.delayed(const Duration(seconds: 2), _navigateToNextScreen);
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return const Scaffold(
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
+          children: [
             CircularProgressIndicator(),
             SizedBox(height: 16),
             Text('Loading...'),

@@ -33,9 +33,7 @@ mixin _$BrushData {
   List<int> get random => throw _privateConstructorUsedError;
   List<int> get sizeRandom => throw _privateConstructorUsedError;
   MaskFilter? get maskFilter => throw _privateConstructorUsedError;
-  Path Function(double, Offset, List<double>)? get pathEffect =>
-      throw _privateConstructorUsedError;
-  void Function(Canvas, DrawingPath)? get customPainter =>
+  void Function(Canvas, Size, DrawingPath)? get customPainter =>
       throw _privateConstructorUsedError;
 
   @JsonKey(ignore: true)
@@ -66,8 +64,7 @@ abstract class $BrushDataCopyWith<$Res> {
       List<int> random,
       List<int> sizeRandom,
       MaskFilter? maskFilter,
-      Path Function(double, Offset, List<double>)? pathEffect,
-      void Function(Canvas, DrawingPath)? customPainter});
+      void Function(Canvas, Size, DrawingPath)? customPainter});
 }
 
 /// @nodoc
@@ -100,7 +97,6 @@ class _$BrushDataCopyWithImpl<$Res, $Val extends BrushData>
     Object? random = null,
     Object? sizeRandom = null,
     Object? maskFilter = freezed,
-    Object? pathEffect = freezed,
     Object? customPainter = freezed,
   }) {
     return _then(_value.copyWith(
@@ -172,14 +168,10 @@ class _$BrushDataCopyWithImpl<$Res, $Val extends BrushData>
           ? _value.maskFilter
           : maskFilter // ignore: cast_nullable_to_non_nullable
               as MaskFilter?,
-      pathEffect: freezed == pathEffect
-          ? _value.pathEffect
-          : pathEffect // ignore: cast_nullable_to_non_nullable
-              as Path Function(double, Offset, List<double>)?,
       customPainter: freezed == customPainter
           ? _value.customPainter
           : customPainter // ignore: cast_nullable_to_non_nullable
-              as void Function(Canvas, DrawingPath)?,
+              as void Function(Canvas, Size, DrawingPath)?,
     ) as $Val);
   }
 }
@@ -210,8 +202,7 @@ abstract class _$$BrushDataImplCopyWith<$Res>
       List<int> random,
       List<int> sizeRandom,
       MaskFilter? maskFilter,
-      Path Function(double, Offset, List<double>)? pathEffect,
-      void Function(Canvas, DrawingPath)? customPainter});
+      void Function(Canvas, Size, DrawingPath)? customPainter});
 }
 
 /// @nodoc
@@ -242,7 +233,6 @@ class __$$BrushDataImplCopyWithImpl<$Res>
     Object? random = null,
     Object? sizeRandom = null,
     Object? maskFilter = freezed,
-    Object? pathEffect = freezed,
     Object? customPainter = freezed,
   }) {
     return _then(_$BrushDataImpl(
@@ -314,14 +304,10 @@ class __$$BrushDataImplCopyWithImpl<$Res>
           ? _value.maskFilter
           : maskFilter // ignore: cast_nullable_to_non_nullable
               as MaskFilter?,
-      pathEffect: freezed == pathEffect
-          ? _value.pathEffect
-          : pathEffect // ignore: cast_nullable_to_non_nullable
-              as Path Function(double, Offset, List<double>)?,
       customPainter: freezed == customPainter
           ? _value.customPainter
           : customPainter // ignore: cast_nullable_to_non_nullable
-              as void Function(Canvas, DrawingPath)?,
+              as void Function(Canvas, Size, DrawingPath)?,
     ));
   }
 }
@@ -347,7 +333,6 @@ class _$BrushDataImpl extends _BrushData {
       final List<int> random = const [0, 0],
       final List<int> sizeRandom = const [0, 0],
       this.maskFilter,
-      this.pathEffect,
       this.customPainter})
       : _random = random,
         _sizeRandom = sizeRandom,
@@ -410,13 +395,11 @@ class _$BrushDataImpl extends _BrushData {
   @override
   final MaskFilter? maskFilter;
   @override
-  final Path Function(double, Offset, List<double>)? pathEffect;
-  @override
-  final void Function(Canvas, DrawingPath)? customPainter;
+  final void Function(Canvas, Size, DrawingPath)? customPainter;
 
   @override
   String toString() {
-    return 'BrushData(id: $id, name: $name, stroke: $stroke, brush: $brush, texture: $texture, isLocked: $isLocked, isNew: $isNew, opacityDiff: $opacityDiff, colorFilter: $colorFilter, strokeCap: $strokeCap, strokeJoin: $strokeJoin, blendMode: $blendMode, densityOffset: $densityOffset, useBrushWidthDensity: $useBrushWidthDensity, random: $random, sizeRandom: $sizeRandom, maskFilter: $maskFilter, pathEffect: $pathEffect, customPainter: $customPainter)';
+    return 'BrushData(id: $id, name: $name, stroke: $stroke, brush: $brush, texture: $texture, isLocked: $isLocked, isNew: $isNew, opacityDiff: $opacityDiff, colorFilter: $colorFilter, strokeCap: $strokeCap, strokeJoin: $strokeJoin, blendMode: $blendMode, densityOffset: $densityOffset, useBrushWidthDensity: $useBrushWidthDensity, random: $random, sizeRandom: $sizeRandom, maskFilter: $maskFilter, customPainter: $customPainter)';
   }
 
   @override
@@ -451,35 +434,31 @@ class _$BrushDataImpl extends _BrushData {
                 .equals(other._sizeRandom, _sizeRandom) &&
             (identical(other.maskFilter, maskFilter) ||
                 other.maskFilter == maskFilter) &&
-            (identical(other.pathEffect, pathEffect) ||
-                other.pathEffect == pathEffect) &&
             (identical(other.customPainter, customPainter) ||
                 other.customPainter == customPainter));
   }
 
   @override
-  int get hashCode => Object.hashAll([
-        runtimeType,
-        id,
-        name,
-        stroke,
-        brush,
-        texture,
-        isLocked,
-        isNew,
-        opacityDiff,
-        colorFilter,
-        strokeCap,
-        strokeJoin,
-        blendMode,
-        densityOffset,
-        useBrushWidthDensity,
-        const DeepCollectionEquality().hash(_random),
-        const DeepCollectionEquality().hash(_sizeRandom),
-        maskFilter,
-        pathEffect,
-        customPainter
-      ]);
+  int get hashCode => Object.hash(
+      runtimeType,
+      id,
+      name,
+      stroke,
+      brush,
+      texture,
+      isLocked,
+      isNew,
+      opacityDiff,
+      colorFilter,
+      strokeCap,
+      strokeJoin,
+      blendMode,
+      densityOffset,
+      useBrushWidthDensity,
+      const DeepCollectionEquality().hash(_random),
+      const DeepCollectionEquality().hash(_sizeRandom),
+      maskFilter,
+      customPainter);
 
   @JsonKey(ignore: true)
   @override
@@ -507,8 +486,7 @@ abstract class _BrushData extends BrushData {
           final List<int> random,
           final List<int> sizeRandom,
           final MaskFilter? maskFilter,
-          final Path Function(double, Offset, List<double>)? pathEffect,
-          final void Function(Canvas, DrawingPath)? customPainter}) =
+          final void Function(Canvas, Size, DrawingPath)? customPainter}) =
       _$BrushDataImpl;
   const _BrushData._() : super._();
 
@@ -547,9 +525,7 @@ abstract class _BrushData extends BrushData {
   @override
   MaskFilter? get maskFilter;
   @override
-  Path Function(double, Offset, List<double>)? get pathEffect;
-  @override
-  void Function(Canvas, DrawingPath)? get customPainter;
+  void Function(Canvas, Size, DrawingPath)? get customPainter;
   @override
   @JsonKey(ignore: true)
   _$$BrushDataImplCopyWith<_$BrushDataImpl> get copyWith =>

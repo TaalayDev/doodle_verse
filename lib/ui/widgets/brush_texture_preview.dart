@@ -65,7 +65,7 @@ class _BrushTexturePainter extends CustomPainter {
       ],
     );
 
-    DrawingCanvas().drawPath(canvas, drawingPath);
+    DrawingCanvas().drawPath(canvas, size, drawingPath);
   }
 
   @override

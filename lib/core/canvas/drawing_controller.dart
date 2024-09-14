@@ -25,13 +25,7 @@ class DrawingController extends ChangeNotifier {
       brush: brush,
       color: color,
       width: width,
-      points: [
-        DrawingPoint(
-          offset: offset,
-          randomOffset: [],
-          randomSize: null,
-        )
-      ],
+      points: [DrawingPoint(offset: offset)],
     );
     notifyListeners();
   }
@@ -44,16 +38,6 @@ class DrawingController extends ChangeNotifier {
       currentPath!.points.add(
         DrawingPoint(
           offset: adjustedOffset,
-          randomOffset: [
-            Random().nextDouble() +
-                (brush.random.isNotEmpty
-                    ? brush.random[1] + brush.random[0]
-                    : 0),
-            Random().nextDouble() +
-                (brush.random.isNotEmpty
-                    ? brush.random[1] + brush.random[0]
-                    : 0),
-          ],
           randomSize: brushSize,
         ),
       );
@@ -111,7 +95,7 @@ class DrawingController extends ChangeNotifier {
       Rect.fromLTWH(0, 0, size.width, size.height),
       Paint(),
     );
-    DrawingCanvas().drawPath(canvas, drawingPath);
+    DrawingCanvas().drawPath(canvas, size, drawingPath);
     canvas.restore();
 
     final picture = recorder.endRecording();

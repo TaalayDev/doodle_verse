@@ -19,7 +19,7 @@ final fillTool = BrushData(
   id: 41,
   name: 'fill',
   stroke: 'fill_tool',
-  customPainter: (canvas, drawingPath) async {
+  customPainter: (canvas, size, drawingPath) async {
     if (drawingPath.points.isEmpty) return;
 
     final startPoint = drawingPath.points.first.offset;

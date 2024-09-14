@@ -9,7 +9,7 @@ final rectangleTool = BrushData(
   id: 29,
   name: 'rectangle',
   stroke: 'rectangle_tool',
-  customPainter: (canvas, drawingPath) {
+  customPainter: (canvas, size, drawingPath) {
     if (drawingPath.points.length < 2) return;
 
     final startPoint = drawingPath.points.first.offset;
@@ -30,7 +30,7 @@ final circleTool = BrushData(
   id: 30,
   name: 'circle',
   stroke: 'circle_tool',
-  customPainter: (canvas, drawingPath) {
+  customPainter: (canvas, size, drawingPath) {
     if (drawingPath.points.length < 2) return;
 
     final startPoint = drawingPath.points.first.offset;
@@ -51,7 +51,7 @@ final lineTool = BrushData(
   id: 31,
   name: 'line',
   stroke: 'line_tool',
-  customPainter: (canvas, drawingPath) {
+  customPainter: (canvas, size, drawingPath) {
     if (drawingPath.points.length < 2) return;
 
     final startPoint = drawingPath.points.first.offset;
@@ -70,7 +70,7 @@ final triangleTool = BrushData(
   id: 32,
   name: 'triangle',
   stroke: 'triangle_tool',
-  customPainter: (canvas, drawingPath) {
+  customPainter: (canvas, size, drawingPath) {
     if (drawingPath.points.length < 2) return;
 
     final paint = Paint()
@@ -95,7 +95,7 @@ final arrowTool = BrushData(
   id: 33,
   name: 'arrow',
   stroke: 'arrow_tool',
-  customPainter: (canvas, drawingPath) {
+  customPainter: (canvas, size, drawingPath) {
     if (drawingPath.points.length < 2) return;
 
     final startPoint = drawingPath.points.first.offset;
@@ -138,7 +138,7 @@ final ellipseTool = BrushData(
   id: 34,
   name: 'ellipse',
   stroke: 'ellipse_tool',
-  customPainter: (canvas, drawingPath) {
+  customPainter: (canvas, size, drawingPath) {
     if (drawingPath.points.length < 2) return;
 
     final startPoint = drawingPath.points.first.offset;
@@ -159,7 +159,7 @@ final polygonTool = BrushData(
   id: 35,
   name: 'polygon',
   stroke: 'polygon_tool',
-  customPainter: (canvas, drawingPath) {
+  customPainter: (canvas, size, drawingPath) {
     if (drawingPath.points.length < 2) return;
 
     final paint = Paint()
@@ -189,7 +189,7 @@ final starTool = BrushData(
   id: 36,
   name: 'star',
   stroke: 'star_tool',
-  customPainter: (canvas, drawingPath) {
+  customPainter: (canvas, size, drawingPath) {
     if (drawingPath.points.length < 2) return;
 
     final paint = Paint()
@@ -237,7 +237,7 @@ final heartTool = BrushData(
   stroke: 'heart_tool',
   strokeCap: StrokeCap.round,
   strokeJoin: StrokeJoin.round,
-  customPainter: (canvas, drawingPath) {
+  customPainter: (canvas, size, drawingPath) {
     if (drawingPath.points.length < 2) return;
 
     final startPoint = drawingPath.points.first.offset;
@@ -278,7 +278,7 @@ final spiralTool = BrushData(
   id: 39,
   name: 'spiral',
   stroke: 'spiral_tool',
-  customPainter: (canvas, drawingPath) {
+  customPainter: (canvas, size, drawingPath) {
     if (drawingPath.points.length < 2) return;
 
     final paint = Paint()
@@ -322,7 +322,7 @@ final cloudTool = BrushData(
   id: 39,
   name: 'cloud',
   stroke: 'cloud_tool',
-  customPainter: (canvas, drawingPath) {
+  customPainter: (canvas, size, drawingPath) {
     if (drawingPath.points.length < 2) return;
 
     final startPoint = drawingPath.points.first.offset;
@@ -373,7 +373,7 @@ final lightningTool = BrushData(
   id: 40,
   name: 'lightning',
   stroke: 'lightning_tool',
-  customPainter: (canvas, drawingPath) {
+  customPainter: (canvas, size, drawingPath) {
     if (drawingPath.points.length < 2) return;
 
     final startPoint = drawingPath.points.first.offset;
@@ -382,7 +382,6 @@ final lightningTool = BrushData(
     final path = Path();
     path.moveTo(startPoint.dx, startPoint.dy);
 
-    final random = Random();
     final numSegments = 20; // Number of segments in the lightning bolt
 
     for (int i = 1; i <= numSegments; i++) {
@@ -394,7 +393,7 @@ final lightningTool = BrushData(
 
       // Apply random offset perpendicular to the line
       final offsetMagnitude =
-          (random.nextDouble() - 0.5) * drawingPath.width * 4;
+          (drawingPath.getRandom([i, t, dx, dy]) - 0.5) * drawingPath.width * 4;
 
       // Calculate the direction perpendicular to the main line
       final angle =
@@ -435,7 +434,7 @@ final pentagonTool = BrushData(
   id: 40,
   name: 'pentagon',
   stroke: 'pentagon_tool',
-  customPainter: (canvas, drawingPath) {
+  customPainter: (canvas, size, drawingPath) {
     if (drawingPath.points.length < 2) return;
 
     final paint = Paint()
@@ -476,7 +475,7 @@ final hexagonTool = BrushData(
   id: 41,
   name: 'hexagon',
   stroke: 'hexagon_tool',
-  customPainter: (canvas, drawingPath) {
+  customPainter: (canvas, size, drawingPath) {
     if (drawingPath.points.length < 2) return;
 
     final paint = Paint()
@@ -517,7 +516,7 @@ final parallelogramTool = BrushData(
   id: 42,
   name: 'parallelogram',
   stroke: 'parallelogram_tool',
-  customPainter: (canvas, drawingPath) {
+  customPainter: (canvas, size, drawingPath) {
     if (drawingPath.points.length < 2) return;
 
     final paint = Paint()
@@ -548,7 +547,7 @@ final trapezoidTool = BrushData(
   id: 43,
   name: 'trapezoid',
   stroke: 'trapezoid_tool',
-  customPainter: (canvas, drawingPath) {
+  customPainter: (canvas, size, drawingPath) {
     if (drawingPath.points.length < 2) return;
 
     final paint = Paint()

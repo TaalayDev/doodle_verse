@@ -6,9 +6,9 @@ import '../../data/models/drawing_path.dart';
 import '../extensions/offset_extensions.dart';
 
 class DrawingCanvas {
-  void drawPath(Canvas canvas, DrawingPath drawingPath) {
+  void drawPath(Canvas canvas, Size size, DrawingPath drawingPath) {
     if (drawingPath.brush.customPainter != null) {
-      drawingPath.brush.customPainter!(canvas, drawingPath);
+      drawingPath.brush.customPainter!(canvas, size, drawingPath);
       return;
     }
 
@@ -32,35 +32,10 @@ class DrawingCanvas {
     }
     if (drawingPath.image case var image?) {
       canvas.drawImage(image, Offset.zero, paint);
-    } else if (drawingPath.brush.pathEffect != null) {
-      drawPathEffect(canvas, drawingPath, paint);
     } else if (drawingPath.brush.brush != null) {
       drawTexturedPath(canvas, path, paint, drawingPath);
     } else {
       drawSimplePath(canvas, drawingPath, paint);
-    }
-  }
-
-  void drawPathEffect(Canvas canvas, DrawingPath drawingPath, Paint paint) {
-    for (int i = 1; i < drawingPath.points.length; i++) {
-      final p0 = drawingPath.points[i - 1];
-      final p1 = drawingPath.points[i];
-
-      p0.offset.calculateDensityOffset(
-        p1.offset,
-        drawingPath.brush.densityOffset,
-        (offset) {
-          final effect = drawingPath.brush.pathEffect!(
-            p1.randomSize ?? drawingPath.width,
-            offset,
-            p1.randomOffset ?? [],
-          );
-
-          paint.strokeWidth = p1.randomSize ?? drawingPath.width;
-
-          canvas.drawPath(effect, paint);
-        },
-      );
     }
   }
 

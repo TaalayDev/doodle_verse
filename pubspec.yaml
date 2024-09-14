@@ -116,6 +116,11 @@ flutter:
   assets:
     - assets/vectors/
     - assets/images/
+    
+  shaders:
+    - shaders/watercolor.frag
+    - shaders/neon.frag
+    - shaders/galaxy.frag
 
 assets_dir: "assets"
 assets_output_file: "lib/config/assets.dart"
