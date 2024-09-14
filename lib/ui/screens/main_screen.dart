@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../core.dart';
@@ -14,9 +15,19 @@ class MainScreen extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final projectsState = ref.watch(projectsProvider);
 
+    final screenSize = MediaQuery.sizeOf(context);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Projects'),
+        actions: [
+          IconButton(
+            icon: const Icon(Feather.info),
+            onPressed: () {
+              const AboutAppRoute().push(context);
+            },
+          ),
+        ],
       ),
       body: RefreshIndicator(
         onRefresh: () async {
@@ -84,28 +95,40 @@ class MainScreen extends HookConsumerWidget {
                 ),
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  icon: const Icon(Icons.add),
-                  label: const Text('Create New Project'),
-                  onPressed: () async {
-                    final uuid =
-                        DateTime.now().millisecondsSinceEpoch.toString();
-                    await ProjectRoute(id: uuid).push(context);
-                    ref.read(projectsProvider.notifier).refresh();
-                  },
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
+            if (screenSize.width < 600)
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    icon: const Icon(Icons.add),
+                    label: const Text('Create New Project'),
+                    onPressed: () async {
+                      final uuid =
+                          DateTime.now().millisecondsSinceEpoch.toString();
+                      await ProjectRoute(id: uuid).push(context);
+                      ref.read(projectsProvider.notifier).refresh();
+                    },
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                    ),
                   ),
                 ),
               ),
-            ),
           ],
         ),
       ),
+      floatingActionButton: screenSize.width >= 600
+          ? FloatingActionButton.extended(
+              onPressed: () async {
+                final uuid = DateTime.now().millisecondsSinceEpoch.toString();
+                await ProjectRoute(id: uuid).push(context);
+                ref.read(projectsProvider.notifier).refresh();
+              },
+              label: const Text('Create New Project'),
+              icon: const Icon(Icons.add),
+            )
+          : null,
     );
   }
 }

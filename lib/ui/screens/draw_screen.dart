@@ -3,11 +3,14 @@ import 'dart:ui' as ui;
 
 import 'package:doodle_verse/core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
+import 'package:path_provider/path_provider.dart';
 
 import '../../core/canvas/drawing_controller.dart';
+import '../../core/canvas/image_saver.dart';
 import '../../data.dart';
 import '../../providers/common.dart';
 import '../../providers/projects.dart';
@@ -101,14 +104,6 @@ class _DrawBodyState extends State<DrawBody> {
     );
   }
 
-  Future<ui.Image> _loadImageFromFile(String path) async {
-    final file = File(path);
-    final bytes = await file.readAsBytes();
-    final codec = await ui.instantiateImageCodec(bytes);
-    final fi = await codec.getNextFrame();
-    return fi.image;
-  }
-
   void _saveProject() async {
     await widget.projectNotifer.saveProject();
 
@@ -138,6 +133,18 @@ class _DrawBodyState extends State<DrawBody> {
   }
 
   late final FocusNode focusNode = FocusNode();
+
+  Future<void> _saveAsImage() async {
+    final renderObject =
+        _canvasKey.currentContext!.findRenderObject()! as RenderRepaintBoundary;
+    final image = await renderObject.toImage(pixelRatio: 3.0);
+    final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+
+    if (byteData != null && mounted) {
+      final bytes = byteData.buffer.asUint8List();
+      ImageSaver(context).save(bytes);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -177,7 +184,9 @@ class _DrawBodyState extends State<DrawBody> {
           actions: [
             IconButton(
               icon: const Icon(Feather.save),
-              onPressed: () {},
+              onPressed: () {
+                _saveAsImage();
+              },
             ),
             IconButton(
               icon: const Icon(Feather.layers),

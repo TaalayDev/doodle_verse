@@ -37,6 +37,16 @@ class ProjectRoute extends GoRouteData {
   }
 }
 
+@TypedGoRoute<AboutAppRoute>(path: '/about')
+class AboutAppRoute extends GoRouteData {
+  const AboutAppRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) {
+    return const AboutScreen();
+  }
+}
+
 // ----------------- Router -----------------
 
 GoRouter buildRouter(BuildContext context) {
