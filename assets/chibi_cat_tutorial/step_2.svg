@@ -1,0 +1,17 @@
+<svg width="800" height="800" xmlns="http://www.w3.org/2000/svg">
+    <!-- White background -->
+    <rect width="800" height="800" fill="white" />
+
+    <!-- Head with cheek fluff -->
+    <path d="
+    M400,170
+    C300,170 200,260 200,350
+    C170,350 170,380 200,400
+    C170,420 170,450 200,470
+    C200,530 300,530 400,530
+    C500,530 600,530 600,470
+    C630,450 630,420 600,400
+    C630,380 630,350 600,350
+    C600,260 500,170 400,170
+    Z" stroke="black" stroke-width="2" fill="white" />
+</svg>

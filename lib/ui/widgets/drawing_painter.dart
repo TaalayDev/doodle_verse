@@ -10,18 +10,38 @@ class DrawingPainter extends CustomPainter {
 
   final DrawingController controller;
   final DrawingCanvas _drawingCanvas = DrawingCanvas();
+  ui.Picture? _cachedPicture;
+  int _lastPathCount = 0;
 
   @override
   void paint(Canvas canvas, Size size) {
     canvas.saveLayer(Offset.zero & size, Paint());
 
-    for (var path in controller.paths) {
-      _drawingCanvas.drawPath(canvas, size, path);
+    if (_cachedPicture == null || _lastPathCount != controller.paths.length) {
+      _renderCachedPicture(size);
     }
+
+    if (_cachedPicture != null) {
+      canvas.drawPicture(_cachedPicture!);
+    }
+
     if (controller.currentPath != null) {
       _drawingCanvas.drawPath(canvas, size, controller.currentPath!);
     }
+
     canvas.restore();
+  }
+
+  void _renderCachedPicture(Size size) {
+    final recorder = ui.PictureRecorder();
+    final recordingCanvas = Canvas(recorder);
+
+    for (var path in controller.paths) {
+      _drawingCanvas.drawPath(recordingCanvas, size, path);
+    }
+
+    _cachedPicture = recorder.endRecording();
+    _lastPathCount = controller.paths.length;
   }
 
   @override

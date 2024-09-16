@@ -1,0 +1,14 @@
+<svg width="500" height="500" xmlns="http://www.w3.org/2000/svg">
+  <!-- White background -->
+  <rect width="500" height="500" fill="white" />
+  <!-- Body circle (moved lower) -->
+  <circle cx="250" cy="320" r="150" stroke="black" stroke-width="2" fill="white" />
+  <!-- Left ear (lengthened and adjusted) -->
+  <ellipse cx="220" cy="80" rx="20" ry="100" stroke="black" stroke-width="2" fill="white"
+    transform="rotate(-15 220 130)" />
+  <!-- Right ear (lengthened and adjusted) -->
+  <ellipse cx="280" cy="80" rx="20" ry="100" stroke="black" stroke-width="2" fill="white"
+    transform="rotate(15 280 130)" />
+  <!-- Head circle (moved lower) -->
+  <circle cx="250" cy="180" r="100" stroke="black" stroke-width="2" fill="white" />
+</svg>

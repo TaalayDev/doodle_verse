@@ -1,0 +1,15 @@
+<svg width="600" height="600" xmlns="http://www.w3.org/2000/svg">
+    <g>
+        <path d="M150 150 C 150 50 250 50 250 150 Z" fill="white" stroke="black" stroke-width="2" />
+        <path d="M450 150 C 450 50 350 50 350 150 Z" fill="white" stroke="black" stroke-width="2" />
+        <path d="M175 150 C 175 100 225 100 225 150 Z" fill="white" stroke="black" stroke-width="1" />
+        <path d="M425 150 C 425 100 375 100 375 150 Z" fill="white" stroke="black" stroke-width="1" />
+    </g>
+    <ellipse cx="300" cy="250" rx="200" ry="180" fill="white" stroke="black" stroke-width="2" />
+    <g>
+        <path d="M200 300 C 150 350 150 400 200 450 C 250 400 250 350 200 300 Z" fill="white" stroke="black"
+            stroke-width="2" />
+        <path d="M400 300 C 450 350 450 400 400 450 C 350 400 350 350 400 300 Z" fill="white" stroke="black"
+            stroke-width="2" />
+    </g>
+</svg>

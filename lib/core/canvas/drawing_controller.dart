@@ -4,6 +4,7 @@ import 'dart:math';
 
 import '../../data.dart';
 import '../../data/models/drawing_path.dart';
+import 'dirty_region_tracker.dart';
 import 'drawing_canvas.dart';
 
 class DrawingController extends ChangeNotifier {
@@ -16,6 +17,7 @@ class DrawingController extends ChangeNotifier {
   final List<DrawingPath> paths = [];
   final List<DrawingPath> _redoStack = [];
   DrawingPath? currentPath;
+  final DirtyRegionTracker dirtyRegionTracker = DirtyRegionTracker();
 
   bool get canUndo => paths.isNotEmpty;
   bool get canRedo => _redoStack.isNotEmpty;
@@ -27,20 +29,19 @@ class DrawingController extends ChangeNotifier {
       width: width,
       points: [DrawingPoint(offset: offset)],
     );
+    dirtyRegionTracker.addPath(currentPath!);
     notifyListeners();
   }
 
   void addPoint(Offset offset, BrushData brush, double brushSize) {
     if (currentPath != null) {
-      final random = Random().nextDouble() * brush.random[1] + brush.random[0];
-      final adjustedOffset = Offset(offset.dx + random, offset.dy + random);
-
       currentPath!.points.add(
         DrawingPoint(
-          offset: adjustedOffset,
+          offset: offset,
           randomSize: brushSize,
         ),
       );
+      dirtyRegionTracker.addPath(currentPath!);
       notifyListeners();
     }
   }
@@ -61,6 +62,7 @@ class DrawingController extends ChangeNotifier {
     if (paths.isNotEmpty) {
       final removedPath = paths.removeLast();
       _redoStack.add(removedPath);
+      dirtyRegionTracker.addPath(removedPath);
       notifyListeners();
     }
   }
@@ -69,6 +71,7 @@ class DrawingController extends ChangeNotifier {
     if (_redoStack.isNotEmpty) {
       final restoredPath = _redoStack.removeLast();
       paths.add(restoredPath);
+      dirtyRegionTracker.addPath(restoredPath);
       notifyListeners();
     }
   }
@@ -77,12 +80,22 @@ class DrawingController extends ChangeNotifier {
     paths.clear();
     currentPath = null;
     _redoStack.clear();
+    dirtyRegionTracker.addDirtyRegion(Rect.largest);
     notifyListeners();
+  }
+
+  Rect? getDirtyRegion() {
+    return dirtyRegionTracker.getBoundingBox();
+  }
+
+  void clearDirtyRegions() {
+    dirtyRegionTracker.clear();
   }
 
   void loadStates(List<DrawingPath> newPaths, List<DrawingPath> redoPaths) {
     paths.addAll(newPaths);
     _redoStack.addAll(redoPaths);
+    dirtyRegionTracker.addDirtyRegion(Rect.largest);
     notifyListeners();
   }
 

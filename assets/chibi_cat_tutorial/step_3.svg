@@ -1,0 +1,45 @@
+<svg width="800" height="800" xmlns="http://www.w3.org/2000/svg">
+    <!-- White background -->
+    <rect width="800" height="800" fill="white" />
+
+    <!-- Head with cheek fluff -->
+    <path d="
+    M400,170
+    C300,170 200,260 200,350
+    C170,350 170,380 200,400
+    C170,420 170,450 200,470
+    C200,530 300,530 400,530
+    C500,530 600,530 600,470
+    C630,450 630,420 600,400
+    C630,380 630,350 600,350
+    C600,260 500,170 400,170
+    Z" stroke="black" stroke-width="2" fill="white" />
+
+    <!-- Left Ear -->
+    <path d="
+    M280,170
+    C240,100 240,50 320,50
+    C400,50 360,100 360,170
+    Z" stroke="black" stroke-width="2" fill="white" />
+
+    <!-- Right Ear -->
+    <path d="
+    M520,170
+    C560,100 560,50 480,50
+    C400,50 440,100 440,170
+    Z" stroke="black" stroke-width="2" fill="white" />
+
+    <!-- Inner Left Ear -->
+    <path d="
+    M300,170
+    C270,110 270,70 320,70
+    C370,70 340,110 340,170
+    Z" stroke="black" stroke-width="1" fill="white" />
+
+    <!-- Inner Right Ear -->
+    <path d="
+    M500,170
+    C530,110 530,70 480,70
+    C430,70 460,110 460,170
+    Z" stroke="black" stroke-width="1" fill="white" />
+</svg>

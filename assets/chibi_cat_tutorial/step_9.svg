@@ -1,0 +1,94 @@
+<svg width="800" height="800" xmlns="http://www.w3.org/2000/svg">
+    <!-- White background -->
+    <rect width="800" height="800" fill="white" />
+    <!-- Body -->
+    <ellipse cx="400" cy="600" rx="150" ry="180" stroke="black" stroke-width="2" fill="white" />
+
+    <!-- Left Front Paw -->
+    <ellipse cx="340" cy="720" rx="30" ry="50" stroke="black" stroke-width="2" fill="white" />
+    <!-- Right Front Paw -->
+    <ellipse cx="460" cy="720" rx="30" ry="50" stroke="black" stroke-width="2" fill="white" />
+
+    <!-- Toes on Left Paw -->
+    <line x1="330" y1="715" x2="350" y2="715" stroke="black" stroke-width="2" />
+    <!-- Toes on Right Paw -->
+    <line x1="450" y1="715" x2="470" y2="715" stroke="black" stroke-width="2" />
+
+    <!-- Head -->
+    <ellipse id="head" cx="400" cy="350" rx="200" ry="180" stroke="black" stroke-width="2" fill="white" />
+
+    <!-- Left Cheek Fluff -->
+    <path d="
+  M 200,350
+  C 180,360 180,380 200,390
+  C 180,400 180,420 200,430
+  C 220,440 220,460 200,470
+  L 250,530
+  L 250,370
+  Z
+" stroke="black" stroke-width="2" fill="white" />
+
+    <!-- Right Cheek Fluff -->
+    <path d="
+  M 600,350
+  C 620,360 620,380 600,390
+  C 620,400 620,420 600,430
+  C 580,440 580,460 600,470
+  L 550,530
+  L 550,370
+  Z
+" stroke="black" stroke-width="2" fill="white" />
+
+    <!-- Left Ear -->
+    <path d="
+  M 270,180
+  Q 200,50 330,100
+  Z
+" stroke="black" stroke-width="2" fill="white" />
+
+    <!-- Right Ear -->
+    <path d="
+  M 530,180
+  Q 600,50 470,100
+  Z
+" stroke="black" stroke-width="2" fill="white" />
+
+    <!-- Left Eye -->
+    <ellipse cx="330" cy="400" rx="40" ry="60" stroke="black" stroke-width="2" fill="white" />
+    <!-- Left Pupil -->
+    <ellipse cx="330" cy="410" rx="20" ry="30" fill="black" />
+    <!-- Left Eye Highlight -->
+    <circle cx="320" cy="390" r="10" fill="white" />
+
+    <!-- Right Eye -->
+    <ellipse cx="470" cy="400" rx="40" ry="60" stroke="black" stroke-width="2" fill="white" />
+    <!-- Right Pupil -->
+    <ellipse cx="470" cy="410" rx="20" ry="30" fill="black" />
+    <!-- Right Eye Highlight -->
+    <circle cx="460" cy="390" r="10" fill="white" />
+
+    <!-- Nose -->
+    <polygon points="400,430 390,450 410,450" fill="black" />
+
+    <!-- Mouth -->
+    <path d="
+  M 400,450
+  C 390,460 380,470 370,470
+" stroke="black" stroke-width="2" fill="none" />
+    <path d="
+  M 400,450
+  C 410,460 420,470 430,470
+" stroke="black" stroke-width="2" fill="none" />
+
+    <!-- Left Whiskers -->
+    <line x1="290" y1="430" x2="200" y2="420" stroke="black" stroke-width="2" />
+    <line x1="290" y1="440" x2="200" y2="440" stroke="black" stroke-width="2" />
+    <line x1="290" y1="450" x2="200" y2="460" stroke="black" stroke-width="2" />
+
+    <!-- Right Whiskers -->
+    <line x1="510" y1="430" x2="600" y2="420" stroke="black" stroke-width="2" />
+    <line x1="510" y1="440" x2="600" y2="440" stroke="black" stroke-width="2" />
+    <line x1="510" y1="450" x2="600" y2="460" stroke="black" stroke-width="2" />
+
+
+</svg>

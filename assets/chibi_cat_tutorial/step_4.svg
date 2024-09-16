@@ -1,0 +1,79 @@
+<svg width="800" height="800" xmlns="http://www.w3.org/2000/svg">
+    <!-- White background -->
+    <rect width="800" height="800" fill="white" />
+
+    <!-- Head with cheek fluff -->
+    <path d="
+    M400,170
+    C300,170 200,260 200,350
+    C170,350 170,380 200,400
+    C170,420 170,450 200,470
+    C200,530 300,530 400,530
+    C500,530 600,530 600,470
+    C630,450 630,420 600,400
+    C630,380 630,350 600,350
+    C600,260 500,170 400,170
+    Z" stroke="black" stroke-width="2" fill="white" />
+
+    <!-- Left Ear -->
+    <path d="
+    M320,170
+    C290,110 300,50 360,50
+    C420,50 430,110 400,170
+    Z" stroke="black" stroke-width="2" fill="white" />
+
+    <!-- Right Ear -->
+    <path d="
+    M480,170
+    C510,110 500,50 440,50
+    C380,50 370,110 400,170
+    Z" stroke="black" stroke-width="2" fill="white" />
+
+    <!-- Inner Left Ear -->
+    <path d="
+    M330,170
+    C305,120 310,70 360,70
+    C410,70 415,120 390,170
+    Z" stroke="black" stroke-width="1" fill="white" />
+
+    <!-- Inner Right Ear -->
+    <path d="
+    M470,170
+    C495,120 490,70 440,70
+    C390,70 385,120 410,170
+    Z" stroke="black" stroke-width="1" fill="white" />
+
+    <!-- Left Eye -->
+    <ellipse cx="350" cy="400" rx="40" ry="60" stroke="black" stroke-width="2" fill="white" />
+
+    <!-- Right Eye -->
+    <ellipse cx="450" cy="400" rx="40" ry="60" stroke="black" stroke-width="2" fill="white" />
+
+    <!-- Left Iris -->
+    <ellipse cx="350" cy="400" rx="30" ry="50" fill="url(#leftEyeGradient)" />
+
+    <!-- Right Iris -->
+    <ellipse cx="450" cy="400" rx="30" ry="50" fill="url(#rightEyeGradient)" />
+
+    <!-- Left Pupil -->
+    <ellipse cx="345" cy="400" rx="15" ry="25" fill="black" />
+
+    <!-- Right Pupil -->
+    <ellipse cx="445" cy="400" rx="15" ry="25" fill="black" />
+
+    <!-- Eye Highlights -->
+    <circle cx="340" cy="390" r="5" fill="white" />
+    <circle cx="440" cy="390" r="5" fill="white" />
+
+    <!-- Definitions for gradients -->
+    <defs>
+        <radialGradient id="leftEyeGradient" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="lightblue" />
+            <stop offset="100%" stop-color="blue" />
+        </radialGradient>
+        <radialGradient id="rightEyeGradient" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="lightblue" />
+            <stop offset="100%" stop-color="blue" />
+        </radialGradient>
+    </defs>
+</svg>
