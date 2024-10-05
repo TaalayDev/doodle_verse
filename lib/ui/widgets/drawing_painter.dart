@@ -1,5 +1,6 @@
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
+import 'package:flutter/painting.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 
@@ -8,12 +9,10 @@ import '../../core/canvas/drawing_controller.dart';
 
 class DrawingPainter extends CustomPainter {
   DrawingPainter(
-    this.controller, {
-    this.isPreview = true,
-  }) : super(repaint: controller);
+    this.controller,
+  ) : super(repaint: controller);
 
   final DrawingController controller;
-  final bool isPreview;
   final DrawingCanvas _drawingCanvas = DrawingCanvas();
 
   @override
@@ -21,18 +20,15 @@ class DrawingPainter extends CustomPainter {
     canvas.saveLayer(Offset.zero & size, Paint());
     final dirtyRegion = controller.getDirtyRegion();
 
-    if (!isPreview) {
-      if (controller.cachedImage == null ||
-          controller.paths.length != controller.lastPathsLength) {
-        _renderPathsToImage(size, null);
-      }
-
-      if (controller.cachedImage != null) {
-        canvas.drawImage(controller.cachedImage!, Offset.zero, Paint());
-      }
-    } else {
-      _renderDirtyRegion(canvas, size, Offset.zero & size);
+    if (controller.cachedImage == null ||
+        controller.paths.length != controller.lastPathsLength) {
+      _renderPathsToImage(size, null);
     }
+
+    if (controller.cachedImage != null) {
+      canvas.drawImage(controller.cachedImage!, Offset.zero, Paint());
+    }
+    _renderDirtyRegion(canvas, size, Offset.zero & size);
 
     canvas.restore();
     controller.clearDirtyRegions();
@@ -75,18 +71,27 @@ class DrawingPainter extends CustomPainter {
   ) {
     final recorder = ui.PictureRecorder();
     final regionCanvas = Canvas(recorder);
+    final paint = Paint()
+      ..blendMode = BlendMode.srcOver
+      ..isAntiAlias = true;
+
     regionCanvas.saveLayer(
       Rect.fromLTWH(0, 0, size.width, size.height),
-      Paint(),
+      paint,
     );
-
-    regionCanvas.clipRect(dirtyRegion);
 
     if (controller.currentPath != null) {
       _drawingCanvas.drawPath(
         regionCanvas,
         size,
-        controller.currentPath!,
+        controller.currentPath!.copyWith(
+          color: controller.currentPath!.brush.blendMode == BlendMode.clear
+              ? Colors.white
+              : controller.currentPath!.color,
+          brush: controller.currentPath!.brush.copyWith(
+            blendMode: BlendMode.srcOver,
+          ),
+        ),
       );
     }
 
@@ -108,6 +113,5 @@ class DrawingPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant DrawingPainter oldDelegate) =>
-      oldDelegate.controller != controller ||
-      oldDelegate.isPreview != isPreview;
+      oldDelegate.controller != controller;
 }

@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
 import '../../data/models/drawing_path.dart';
@@ -13,8 +14,9 @@ class DrawingCanvas {
       return;
     }
 
+    final color = drawingPath.color;
     final paint = Paint()
-      ..color = drawingPath.color.withOpacity(1 - drawingPath.brush.opacityDiff)
+      ..color = color.withOpacity(1 - drawingPath.brush.opacityDiff)
       ..strokeCap = drawingPath.brush.strokeCap
       ..strokeJoin = drawingPath.brush.strokeJoin
       ..strokeWidth = drawingPath.width

@@ -106,7 +106,7 @@ class _DrawBodyState extends State<DrawBody> {
     final canvas = Canvas(recorder);
     final size = MediaQuery.of(context).size;
 
-    final painter = DrawingPainter(_drawingController, isPreview: false);
+    final painter = DrawingPainter(_drawingController);
     painter.paint(canvas, size);
 
     final picture = recorder.endRecording();
@@ -215,22 +215,8 @@ class _DrawBodyState extends State<DrawBody> {
                           children: [
                             Positioned.fill(
                               child: CustomPaint(
-                                painter: DrawingPainter(
-                                  _drawingController,
-                                  isPreview: false,
-                                ),
+                                painter: DrawingPainter(_drawingController),
                                 size: Size.infinite,
-                              ),
-                            ),
-                            Positioned.fill(
-                              child: IgnorePointer(
-                                child: CustomPaint(
-                                  painter: DrawingPainter(
-                                    _drawingController,
-                                    isPreview: true,
-                                  ),
-                                  size: Size.infinite,
-                                ),
                               ),
                             ),
                           ],
@@ -627,7 +613,7 @@ class _DrawBodyState extends State<DrawBody> {
 
   void _redo() {
     final drawingPath = _drawingController.redo();
-
+    if (drawingPath == null) return;
     final currentLayer = widget.project.layers.last;
     _projectNotifier.updateLayers(
       widget.project.layers.map((layer) {
@@ -635,7 +621,7 @@ class _DrawBodyState extends State<DrawBody> {
           return layer.copyWith(
             states: [
               ...layer.states,
-              LayerStateModel(id: 0, drawingPath: drawingPath!),
+              LayerStateModel(id: 0, drawingPath: drawingPath),
             ],
           );
         }
