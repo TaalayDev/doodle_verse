@@ -81,7 +81,7 @@ lib/
 
 ## Key Components
 
-1. **Database**: Uses SQLite (via `sqflite` package) for local storage of projects and layers.
+1. **Database**: Uses Drift (via `drift` package) for local storage of projects and layers.
 
 2. **State Management**: Utilizes Riverpod for efficient state management across the app.
 
@@ -139,7 +139,7 @@ Contributions to DoodleVerse are welcome! Please feel free to submit pull reques
 - [Flutter](https://flutter.dev/)
 - [Riverpod](https://riverpod.dev/)
 - [GoRouter](https://pub.dev/packages/go_router)
-- [SQLite](https://www.sqlite.org/index.html)
+- [Drift](https://pub.dev/packages/drift)
 
 ---
 
