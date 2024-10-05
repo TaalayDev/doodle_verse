@@ -62,39 +62,48 @@ final softPencilBrush = BrushData(
   stroke: 'soft_pencil_stroke',
   densityOffset: 1.0,
   customPainter: (canvas, size, drawingPath) {
-    final paint = Paint()
-      ..color = drawingPath.color.withOpacity(0.3)
-      ..strokeWidth = drawingPath.width * 0.5
-      ..strokeCap = StrokeCap.round
-      ..style = PaintingStyle.stroke;
+    try {
+      if (drawingPath.points.length < 2) return;
+      final paint = Paint()
+        ..color = drawingPath.color.withOpacity(0.3)
+        ..strokeWidth = drawingPath.width * 0.5
+        ..strokeCap = StrokeCap.round
+        ..style = PaintingStyle.stroke;
 
-    final path = drawingPath.createPath();
-    final metrics = path.computeMetrics();
-    final metric = metrics.first;
-    final length = metric.length;
+      final path = drawingPath.createPath();
+      final metrics = path.computeMetrics();
 
-    var distance = 0.0;
-    while (distance < length) {
-      final position = metric.getTangentForOffset(distance)!.position;
+      final metric = metrics.first;
+      final length = metric.length;
 
-      for (int j = 0; j < 3; j++) {
-        final random1 = drawingPath.getRandom([position.dx, position.dy, j, 1]);
-        final random2 = drawingPath.getRandom([position.dx, position.dy, j, 2]);
-        final random3 = drawingPath.getRandom([position.dx, position.dy, j, 3]);
+      var distance = 0.0;
+      while (distance < length) {
+        final position = metric.getTangentForOffset(distance)!.position;
 
-        final offset = Offset(
-          (random1 - 0.5) * drawingPath.width,
-          (random2 - 0.5) * drawingPath.width,
-        );
+        for (int j = 0; j < 3; j++) {
+          final random1 =
+              drawingPath.getRandom([position.dx, position.dy, j, 1]);
+          final random2 =
+              drawingPath.getRandom([position.dx, position.dy, j, 2]);
+          final random3 =
+              drawingPath.getRandom([position.dx, position.dy, j, 3]);
 
-        canvas.drawLine(
-          position + offset,
-          position + offset + Offset(random3 - 0.5, random3 - 0.5),
-          paint,
-        );
+          final offset = Offset(
+            (random1 - 0.5) * drawingPath.width,
+            (random2 - 0.5) * drawingPath.width,
+          );
+
+          canvas.drawLine(
+            position + offset,
+            position + offset + Offset(random3 - 0.5, random3 - 0.5),
+            paint,
+          );
+        }
+
+        distance += drawingPath.width * 0.5;
       }
-
-      distance += drawingPath.width * 0.5;
+    } catch (e) {
+      print(e);
     }
   },
 );
@@ -204,13 +213,13 @@ Future<BrushData> get marker async => BrushData(
       name: 'marker',
       stroke: 'marker_stroke',
       isNew: true,
-      opacityDiff: 0.1,
+      opacityDiff: 0.3,
       strokeCap: ui.StrokeCap.square,
       strokeJoin: ui.StrokeJoin.bevel,
       isLocked: true,
       densityOffset: 1.0,
       useBrushWidthDensity: false,
-      brush: await _loadUIImage(Assets.images.marker2),
+      brush: await _loadUIImage(Assets.images.stampMarker),
     );
 
 final watercolor = BrushData(

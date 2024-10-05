@@ -29,7 +29,7 @@ class MainRoute extends GoRouteData {
 class ProjectRoute extends GoRouteData {
   const ProjectRoute({required this.id});
 
-  final String id;
+  final int id;
 
   @override
   Widget build(BuildContext context, GoRouterState state) {

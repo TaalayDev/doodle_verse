@@ -1,20 +1,17 @@
-import 'dart:io';
 import 'dart:ui' as ui;
 
-import 'package:doodle_verse/core.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
-import 'package:path_provider/path_provider.dart';
 
 import '../../core/canvas/drawing_controller.dart';
 import '../../core/canvas/image_saver.dart';
-import '../../data.dart';
-import '../../providers/common.dart';
 import '../../providers/projects.dart';
+import '../../providers/common.dart';
+import '../../data.dart';
+import '../../core.dart';
 import '../widgets/brush_settings_bottom_sheet.dart';
 import '../widgets/color_picker_bottom_sheet.dart';
 import '../widgets.dart';
@@ -27,7 +24,7 @@ class DrawScreen extends HookConsumerWidget {
     required this.id,
   });
 
-  final String id;
+  final int id;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -98,19 +95,10 @@ class _DrawBodyState extends State<DrawBody> {
   }
 
   void _loadLayerStates(LayerModel layer) async {
-    final undoStates = layer.prevStates;
-    final redoStates = layer.redoStates;
-
     _drawingController.loadStates(
-      undoStates.map((state) => state.drawingPath).toList(),
-      redoStates.map((state) => state.drawingPath).toList(),
+      layer.states.map((state) => state.drawingPath).toList(),
+      [],
     );
-  }
-
-  void _saveProject() async {
-    await widget.projectNotifer.saveProject();
-
-    _saveProjectThumbnail();
   }
 
   Future<ui.Image> _capture() async {
@@ -118,7 +106,7 @@ class _DrawBodyState extends State<DrawBody> {
     final canvas = Canvas(recorder);
     final size = MediaQuery.of(context).size;
 
-    final painter = DrawingPainter(_drawingController);
+    final painter = DrawingPainter(_drawingController, isPreview: false);
     painter.paint(canvas, size);
 
     final picture = recorder.endRecording();
@@ -168,7 +156,6 @@ class _DrawBodyState extends State<DrawBody> {
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
             onPressed: () {
-              _saveProject();
               Navigator.of(context).pop();
             },
           ),
@@ -587,7 +574,9 @@ class _DrawBodyState extends State<DrawBody> {
       _drawingController.endPath();
 
       if (state != null) {
-        _projectNotifier.addNewState(widget.project.layers.last.id, state);
+        _projectNotifier.addNewState(widget.project.layers.last.id, state).then(
+              (_) => _saveProjectThumbnail(),
+            );
       }
     }
     _isScaling = false;
@@ -626,14 +615,12 @@ class _DrawBodyState extends State<DrawBody> {
     _drawingController.undo();
 
     final currentLayer = widget.project.layers.last;
-    _projectNotifier.undoState(currentLayer.id);
   }
 
   void _redo() {
     _drawingController.redo();
 
     final currentLayer = widget.project.layers.last;
-    _projectNotifier.redoState(currentLayer.id);
   }
 
   @override

@@ -1,13 +1,16 @@
 import 'dart:io';
 
-import 'package:doodle_verse/ui/screens/pixel_draw_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../core.dart';
+import '../../data.dart';
 import '../../providers/projects.dart';
 import '../widgets.dart';
+import '../widgets/new_project_dialog.dart';
+import '../widgets/overlay.dart';
 
 class MainScreen extends HookConsumerWidget {
   const MainScreen({super.key});
@@ -23,16 +26,6 @@ class MainScreen extends HookConsumerWidget {
         title: const Text('Projects'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.brush_outlined),
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => const PixelDrawScreen(id: '1'),
-                ),
-              );
-            },
-          ),
-          IconButton(
             icon: const Icon(Feather.info),
             onPressed: () {
               const AboutAppRoute().push(context);
@@ -41,33 +34,34 @@ class MainScreen extends HookConsumerWidget {
         ],
       ),
       body: RefreshIndicator(
-        onRefresh: () async {
-          ref.read(projectsProvider.notifier).refresh();
-        },
+        onRefresh: () async {},
         child: Column(
           children: [
             Expanded(
               child: projectsState.when(
                 data: (projects) {
                   if (projects.isEmpty) {
-                    return const Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.folder_open,
-                          size: 64,
-                          color: Colors.grey,
-                        ),
-                        Text(
-                          'No projects found, '
-                          '\ncreate one by clicking the button below.',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
+                    return const SizedBox(
+                      width: double.infinity,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.folder_open,
+                            size: 64,
                             color: Colors.grey,
-                            fontSize: 18,
                           ),
-                        ),
-                      ],
+                          Text(
+                            'No projects found, '
+                            '\ncreate one by clicking the button below.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: Colors.grey,
+                              fontSize: 18,
+                            ),
+                          ),
+                        ],
+                      ),
                     );
                   }
 
@@ -88,10 +82,9 @@ class MainScreen extends HookConsumerWidget {
                         .map(
                           (project) => ProjectCard(
                             title: project.name,
-                            image: project.cachedImageFile,
+                            image: project.cachedImage,
                             onTap: () async {
                               await ProjectRoute(id: project.id).push(context);
-                              ref.read(projectsProvider.notifier).refresh();
                             },
                           ),
                         )
@@ -115,10 +108,7 @@ class MainScreen extends HookConsumerWidget {
                     icon: const Icon(Icons.add),
                     label: const Text('Create New Project'),
                     onPressed: () async {
-                      final uuid =
-                          DateTime.now().millisecondsSinceEpoch.toString();
-                      await ProjectRoute(id: uuid).push(context);
-                      ref.read(projectsProvider.notifier).refresh();
+                      _navigateToNewProject(context, ref);
                     },
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16),
@@ -132,15 +122,44 @@ class MainScreen extends HookConsumerWidget {
       floatingActionButton: screenSize.width >= 600
           ? FloatingActionButton.extended(
               onPressed: () async {
-                final uuid = DateTime.now().millisecondsSinceEpoch.toString();
-                await ProjectRoute(id: uuid).push(context);
-                ref.read(projectsProvider.notifier).refresh();
+                _navigateToNewProject(context, ref);
               },
               label: const Text('Create New Project'),
               icon: const Icon(Icons.add),
             )
           : null,
     );
+  }
+
+  void _navigateToNewProject(BuildContext context, WidgetRef ref) async {
+    final result = await showDialog<({String name, int width, int height})>(
+      context: context,
+      builder: (BuildContext context) => const NewProjectDialog(),
+    );
+
+    if (result != null && context.mounted) {
+      final project = ProjectModel(
+        id: 0,
+        name: result.name,
+        createdAt: DateTime.now().millisecondsSinceEpoch,
+        lastModified: DateTime.now().millisecondsSinceEpoch,
+        layers: [
+          const LayerModel(
+            id: 0,
+            name: 'Layer 1',
+          ),
+        ],
+      );
+
+      final loader = showLoader(context, loadingText: 'Creating project...');
+      final newProjectId =
+          await ref.read(projectsProvider.notifier).addProject(project);
+
+      if (context.mounted) {
+        loader.remove();
+        await ProjectRoute(id: newProjectId).push(context);
+      }
+    }
   }
 }
 
@@ -153,7 +172,7 @@ class ProjectCard extends StatelessWidget {
   });
 
   final String title;
-  final File? image;
+  final Uint8List? image;
   final Function() onTap;
 
   @override
@@ -169,7 +188,7 @@ class ProjectCard extends StatelessWidget {
               child: Container(
                 color: Colors.white,
                 child: image != null
-                    ? Image.file(
+                    ? Image.memory(
                         image!,
                         fit: BoxFit.fitHeight,
                         width: double.infinity,

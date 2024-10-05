@@ -6,12 +6,12 @@ part of 'projects.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$projectsHash() => r'566896b9c68397bcf20bdfcf7a190375098f26ba';
+String _$projectsHash() => r'022d2963f01df99eb960fed51e1f6a74491dfd28';
 
 /// See also [Projects].
 @ProviderFor(Projects)
 final projectsProvider =
-    AutoDisposeAsyncNotifierProvider<Projects, List<ProjectModel>>.internal(
+    AutoDisposeStreamNotifierProvider<Projects, List<ProjectModel>>.internal(
   Projects.new,
   name: r'projectsProvider',
   debugGetCreateSourceHash:
@@ -20,8 +20,8 @@ final projectsProvider =
   allTransitiveDependencies: null,
 );
 
-typedef _$Projects = AutoDisposeAsyncNotifier<List<ProjectModel>>;
-String _$projectHash() => r'72398b2137c34733569187138c08ef86d353299a';
+typedef _$Projects = AutoDisposeStreamNotifier<List<ProjectModel>>;
+String _$projectHash() => r'2581ddac9a0a1a0294e6b715d27886b0f8539198';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -46,10 +46,10 @@ class _SystemHash {
 
 abstract class _$Project
     extends BuildlessAutoDisposeAsyncNotifier<ProjectModel> {
-  late final String projectId;
+  late final int projectId;
 
   FutureOr<ProjectModel> build(
-    String projectId,
+    int projectId,
   );
 }
 
@@ -64,7 +64,7 @@ class ProjectFamily extends Family<AsyncValue<ProjectModel>> {
 
   /// See also [Project].
   ProjectProvider call(
-    String projectId,
+    int projectId,
   ) {
     return ProjectProvider(
       projectId,
@@ -100,7 +100,7 @@ class ProjectProvider
     extends AutoDisposeAsyncNotifierProviderImpl<Project, ProjectModel> {
   /// See also [Project].
   ProjectProvider(
-    String projectId,
+    int projectId,
   ) : this._internal(
           () => Project()..projectId = projectId,
           from: projectProvider,
@@ -124,7 +124,7 @@ class ProjectProvider
     required this.projectId,
   }) : super.internal();
 
-  final String projectId;
+  final int projectId;
 
   @override
   FutureOr<ProjectModel> runNotifierBuild(
@@ -173,7 +173,7 @@ class ProjectProvider
 
 mixin ProjectRef on AutoDisposeAsyncNotifierProviderRef<ProjectModel> {
   /// The parameter `projectId` of this provider.
-  String get projectId;
+  int get projectId;
 }
 
 class _ProjectProviderElement
@@ -182,7 +182,7 @@ class _ProjectProviderElement
   _ProjectProviderElement(super.provider);
 
   @override
-  String get projectId => (origin as ProjectProvider).projectId;
+  int get projectId => (origin as ProjectProvider).projectId;
 }
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member

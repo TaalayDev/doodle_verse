@@ -79,9 +79,9 @@ dependencies:
   # annotations
   freezed_annotation: ^2.1.0
   json_annotation: ^4.8.1
+  
   image_cropper: ^8.0.2
   image_picker: ^1.1.2
-  sqflite: ^2.3.3+1
   image_gallery_saver: ^2.0.3
   universal_html: ^2.2.4
   file_picker: ^8.1.2
@@ -90,6 +90,10 @@ dependencies:
   flutter_colorpicker: ^1.1.0
   perfect_freehand: ^2.3.2
   uid: ^0.0.2
+
+  # database
+  drift: ^2.20.2
+  drift_flutter: ^0.2.0
 
 dev_dependencies:
   flutter_test:
@@ -100,6 +104,8 @@ dev_dependencies:
   json_serializable: ^6.7.0
   riverpod_generator: ^2.2.3
   go_router_builder: ^2.3.0
+
+  drift_dev: ^2.20.3
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is

@@ -1,21 +1,21 @@
 import 'dart:convert';
-import 'dart:io';
+import 'dart:typed_data';
 import 'dart:ui';
 
-import 'package:doodle_verse/core/canvas/tools_manager.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'drawing_path.dart';
 
+import '../../core/canvas/tools_manager.dart';
 part 'project_model.freezed.dart';
 
 @freezed
 class ProjectModel with _$ProjectModel {
   const ProjectModel._();
   const factory ProjectModel({
-    required String id,
+    required int id,
     required String name,
     required List<LayerModel> layers,
-    String? cachedImageUrl,
+    Uint8List? cachedImage,
     required int createdAt,
     required int lastModified,
     @Default(Size(1080, 1920)) Size canvasSize,
@@ -30,7 +30,9 @@ class ProjectModel with _$ProjectModel {
       layers: (json['layers'] as List)
           .map((layerJson) => LayerModel.fromMap(layerJson))
           .toList(),
-      cachedImageUrl: json['cachedImageUrl'],
+      cachedImage: json['cachedImage'] != null
+          ? Uint8List.fromList(List<int>.from(json['cachedImage']))
+          : null,
       createdAt: json['createdAt'],
       lastModified: json['lastModified'],
       canvasSize: Size(
@@ -38,6 +40,12 @@ class ProjectModel with _$ProjectModel {
         json['canvasHeight'],
       ),
       zoomLevel: json['zoomLevel'],
+      lastViewportPosition: json['lastViewportPosition'] != null
+          ? Offset(
+              json['lastViewportPosition']['dx'],
+              json['lastViewportPosition']['dy'],
+            )
+          : null,
     );
   }
 
@@ -45,15 +53,20 @@ class ProjectModel with _$ProjectModel {
     return {
       'id': id,
       'name': name,
-      'cachedImageUrl': cachedImageUrl,
+      'layers': layers.map((layer) => layer.toMap()).toList(),
+      'cachedImage': cachedImage,
       'createdAt': createdAt,
       'lastModified': lastModified,
+      'canvasWidth': canvasSize.width,
+      'canvasHeight': canvasSize.height,
+      'zoomLevel': zoomLevel,
+      'lastViewportPosition': lastViewportPosition != null
+          ? {
+              'dx': lastViewportPosition!.dx,
+              'dy': lastViewportPosition!.dy,
+            }
+          : null,
     };
-  }
-
-  File? get cachedImageFile {
-    if (cachedImageUrl == null) return null;
-    return File(cachedImageUrl!);
   }
 }
 
@@ -61,15 +74,13 @@ class ProjectModel with _$ProjectModel {
 class LayerModel with _$LayerModel {
   const LayerModel._();
   const factory LayerModel({
-    required String id,
+    required int id,
     required String name,
     @Default(true) bool isVisible,
     @Default(false) bool isLocked,
     @Default(false) bool isBackground,
     @Default(1.0) double opacity,
-    String? imagePath, // File path to the layer image
-    @Default([]) final List<LayerStateModel> prevStates,
-    @Default([]) final List<LayerStateModel> redoStates,
+    @Default([]) final List<LayerStateModel> states,
   }) = _LayerModel;
 
   static LayerModel fromMap(Map<String, dynamic> json) {
@@ -80,11 +91,7 @@ class LayerModel with _$LayerModel {
       isLocked: json['isLocked'] == 1,
       isBackground: json['isBackground'] == 1,
       opacity: json['opacity'] ?? 1.0,
-      imagePath: json['imagePath'],
-      prevStates: (json['prevLayerStates'] as List)
-          .map((stateJson) => LayerStateModel.fromJson(stateJson))
-          .toList(),
-      redoStates: (json['redoLayerStates'] as List)
+      states: (json['states'] as List)
           .map((stateJson) => LayerStateModel.fromJson(stateJson))
           .toList(),
     );
@@ -94,11 +101,11 @@ class LayerModel with _$LayerModel {
     return {
       'id': id,
       'name': name,
-      'isVisible': isVisible ? 1 : 0,
-      'isLocked': isLocked ? 1 : 0,
-      'isBackground': isBackground ? 1 : 0,
+      'isVisible': isVisible,
+      'isLocked': isLocked,
+      'isBackground': isBackground,
       'opacity': opacity,
-      'imagePath': imagePath,
+      'states': states.map((state) => state.toJson()).toList(),
     };
   }
 }
@@ -107,6 +114,7 @@ class LayerModel with _$LayerModel {
 class LayerStateModel with _$LayerStateModel {
   const LayerStateModel._();
   const factory LayerStateModel({
+    required int id,
     required DrawingPath drawingPath,
   }) = _LayerStateModel;
 
@@ -115,6 +123,7 @@ class LayerStateModel with _$LayerStateModel {
         json['points'] is String ? jsonDecode(json['points']) : json['points'];
 
     return LayerStateModel(
+      id: json['id'],
       drawingPath: DrawingPath(
         points: (points as List)
             .map(
@@ -130,6 +139,7 @@ class LayerStateModel with _$LayerStateModel {
 
   Map<String, dynamic> toJson() {
     return {
+      'id': id,
       'points': drawingPath.points
           .map(
             (point) => {

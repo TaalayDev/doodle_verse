@@ -65,11 +65,11 @@ RouteBase get $projectRoute => GoRouteData.$route(
 
 extension $ProjectRouteExtension on ProjectRoute {
   static ProjectRoute _fromState(GoRouterState state) => ProjectRoute(
-        id: state.pathParameters['id']!,
+        id: int.parse(state.pathParameters['id']!),
       );
 
   String get location => GoRouteData.$location(
-        '/project/${Uri.encodeComponent(id)}',
+        '/project/${Uri.encodeComponent(id.toString())}',
       );
 
   void go(BuildContext context) => context.go(location);

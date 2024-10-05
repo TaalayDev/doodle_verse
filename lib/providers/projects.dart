@@ -2,11 +2,11 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui';
 
-import 'package:doodle_verse/data/models/drawing_path.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../data/models/drawing_path.dart';
 import '../data.dart';
 import 'common.dart';
 
@@ -14,16 +14,12 @@ part 'projects.g.dart';
 
 @riverpod
 class Projects extends _$Projects {
-  late final DatabaseHelper database = ref.read(databaseProvider);
+  late final ProjectRepo repo = ref.read(projectRepo);
 
   @override
-  Future<List<ProjectModel>> build() async {
-    if (kIsWeb) {
-      return [];
-    }
-
+  Stream<List<ProjectModel>> build() {
     try {
-      final dbProjects = await database.getAllProjects();
+      final dbProjects = repo.fetchProjects();
       return dbProjects;
     } catch (e, s) {
       print(e);
@@ -32,14 +28,8 @@ class Projects extends _$Projects {
     }
   }
 
-  void refresh() async {
-    final dbProjects = await database.getAllProjects();
-    state = AsyncValue.data(dbProjects);
-  }
-
-  Future<void> addProject(ProjectModel project) async {
-    await database.saveProject(project);
-    refresh();
+  Future<int> addProject(ProjectModel project) async {
+    return repo.createProject(project);
   }
 
   Future<void> updateProject(ProjectModel project) async {
@@ -54,28 +44,12 @@ class Projects extends _$Projects {
 
 @riverpod
 class Project extends _$Project {
-  late final DatabaseHelper database = ref.read(databaseProvider);
+  late final ProjectRepo repo = ref.read(projectRepo);
 
   @override
-  Future<ProjectModel> build(String projectId) async {
-    if (kIsWeb) {
-      return ProjectModel(
-        id: projectId,
-        name: 'New Project',
-        layers: [
-          const LayerModel(
-            id: '1',
-            name: 'Background',
-            isBackground: true,
-          ),
-        ],
-        createdAt: DateTime.now().millisecondsSinceEpoch,
-        lastModified: DateTime.now().millisecondsSinceEpoch,
-      );
-    }
-
+  Future<ProjectModel> build(int projectId) async {
     try {
-      final dbProject = await database.loadProject(projectId);
+      final dbProject = await repo.fetchProject(projectId);
 
       if (dbProject == null) {
         final newProject = ProjectModel(
@@ -83,7 +57,7 @@ class Project extends _$Project {
           name: 'New Project',
           layers: [
             const LayerModel(
-              id: '1',
+              id: 1,
               name: 'Background',
               isBackground: true,
             ),
@@ -91,8 +65,7 @@ class Project extends _$Project {
           createdAt: DateTime.now().millisecondsSinceEpoch,
           lastModified: DateTime.now().millisecondsSinceEpoch,
         );
-        await database.saveProject(newProject);
-        ref.read(projectsProvider.notifier).refresh();
+        await repo.createProject(newProject);
         return newProject;
       }
 
@@ -104,20 +77,15 @@ class Project extends _$Project {
     }
   }
 
-  Future<void> saveProject() async {
-    final project = state.valueOrNull;
-    if (project != null) {
-      await database.saveProject(project.copyWith(
-        lastModified: DateTime.now().millisecondsSinceEpoch,
-      ));
-      ref.read(projectsProvider.notifier).refresh();
-    }
+  Future<void> saveProject(ProjectModel model) async {
+    await repo.updateProject(model.copyWith(
+      lastModified: DateTime.now().millisecondsSinceEpoch,
+    ));
   }
 
   void updateProject(ProjectModel updatedProject) {
     state = AsyncValue.data(updatedProject);
-    saveProject();
-    ref.read(projectsProvider.notifier).updateProject(updatedProject);
+    saveProject(updatedProject);
   }
 
   // Update methods
@@ -162,101 +130,33 @@ class Project extends _$Project {
   }
 
   Future<void> updateCachedImage(Uint8List image) async {
-    final project = state.valueOrNull;
-    if (project != null) {
-      final directory = await getApplicationDocumentsDirectory();
-      final file = File('${directory.path}/${project.id}_thumbnail.png');
-      await file.writeAsBytes(image);
+    final project = await future;
 
-      final updatedProject = project.copyWith(cachedImageUrl: file.path);
-      updateProject(updatedProject);
-    }
+    final updatedProject = project.copyWith(cachedImage: image);
+    updateProject(updatedProject);
   }
 
-  Future<void> addNewState(String layer, DrawingPath path) async {
+  Future<void> addNewState(int layerId, DrawingPath path) async {
     final project = state.valueOrNull;
     if (project != null) {
-      final layerIndex = project.layers.indexWhere((l) => l.id == layer);
+      final layerIndex = project.layers.indexWhere((l) => l.id == layerId);
       if (layerIndex != -1) {
         final layer = project.layers[layerIndex];
-        final newStates = List<LayerStateModel>.from(layer.prevStates);
-
-        final newState = LayerStateModel(drawingPath: path);
-        newStates.add(newState);
-
-        final updatedLayer = layer.copyWith(
-          prevStates: newStates,
-          redoStates: [],
+        final newLayer = layer.copyWith(
+          states: [
+            ...layer.states,
+            LayerStateModel(id: 0, drawingPath: path),
+          ],
         );
+
+        await repo.updateLayer(project.id, newLayer);
+
         final updatedLayers = List<LayerModel>.from(project.layers);
-        updatedLayers[layerIndex] = updatedLayer;
+        updatedLayers[layerIndex] = newLayer;
 
         final updatedProject = project.copyWith(layers: updatedLayers);
-        updateProject(updatedProject);
+        state = AsyncValue.data(updatedProject);
       }
     }
-  }
-
-  Future<void> undoState(String layer) async {
-    final project = state.valueOrNull;
-    if (project != null) {
-      final layerIndex = project.layers.indexWhere((l) => l.id == layer);
-      if (layerIndex != -1) {
-        final layer = project.layers[layerIndex];
-        final newStates = List<LayerStateModel>.from(layer.prevStates);
-        final redoStates = List<LayerStateModel>.from(layer.redoStates);
-
-        if (newStates.isNotEmpty) {
-          final state = newStates.removeLast();
-          redoStates.add(state);
-
-          final updatedLayer = layer.copyWith(
-            prevStates: newStates,
-            redoStates: redoStates,
-          );
-          final updatedLayers = List<LayerModel>.from(project.layers);
-          updatedLayers[layerIndex] = updatedLayer;
-
-          final updatedProject = project.copyWith(layers: updatedLayers);
-          updateProject(updatedProject);
-        }
-      }
-    }
-  }
-
-  Future<void> redoState(String layer) async {
-    final project = state.valueOrNull;
-    if (project != null) {
-      final layerIndex = project.layers.indexWhere((l) => l.id == layer);
-      if (layerIndex != -1) {
-        final layer = project.layers[layerIndex];
-        final newStates = List<LayerStateModel>.from(layer.prevStates);
-        final redoStates = List<LayerStateModel>.from(layer.redoStates);
-
-        if (redoStates.isNotEmpty) {
-          final state = redoStates.removeLast();
-          newStates.add(state);
-
-          final updatedLayer = layer.copyWith(
-            prevStates: newStates,
-            redoStates: redoStates,
-          );
-          final updatedLayers = List<LayerModel>.from(project.layers);
-          updatedLayers[layerIndex] = updatedLayer;
-
-          final updatedProject = project.copyWith(layers: updatedLayers);
-          updateProject(updatedProject);
-        }
-      }
-    }
-  }
-
-  Future<String> _saveImage(Image image, String name) async {
-    final directory = await getApplicationDocumentsDirectory();
-    final file = File('${directory.path}/$name.png');
-    final data = await image.toByteData(format: ImageByteFormat.png);
-    final bytes = data!.buffer.asUint8List();
-    await file.writeAsBytes(bytes);
-    return file.path;
   }
 }

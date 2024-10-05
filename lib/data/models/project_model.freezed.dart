@@ -16,10 +16,10 @@ final _privateConstructorUsedError = UnsupportedError(
 
 /// @nodoc
 mixin _$ProjectModel {
-  String get id => throw _privateConstructorUsedError;
+  int get id => throw _privateConstructorUsedError;
   String get name => throw _privateConstructorUsedError;
   List<LayerModel> get layers => throw _privateConstructorUsedError;
-  String? get cachedImageUrl => throw _privateConstructorUsedError;
+  Uint8List? get cachedImage => throw _privateConstructorUsedError;
   int get createdAt => throw _privateConstructorUsedError;
   int get lastModified => throw _privateConstructorUsedError;
   Size get canvasSize => throw _privateConstructorUsedError;
@@ -38,10 +38,10 @@ abstract class $ProjectModelCopyWith<$Res> {
       _$ProjectModelCopyWithImpl<$Res, ProjectModel>;
   @useResult
   $Res call(
-      {String id,
+      {int id,
       String name,
       List<LayerModel> layers,
-      String? cachedImageUrl,
+      Uint8List? cachedImage,
       int createdAt,
       int lastModified,
       Size canvasSize,
@@ -65,7 +65,7 @@ class _$ProjectModelCopyWithImpl<$Res, $Val extends ProjectModel>
     Object? id = null,
     Object? name = null,
     Object? layers = null,
-    Object? cachedImageUrl = freezed,
+    Object? cachedImage = freezed,
     Object? createdAt = null,
     Object? lastModified = null,
     Object? canvasSize = null,
@@ -76,7 +76,7 @@ class _$ProjectModelCopyWithImpl<$Res, $Val extends ProjectModel>
       id: null == id
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
-              as String,
+              as int,
       name: null == name
           ? _value.name
           : name // ignore: cast_nullable_to_non_nullable
@@ -85,10 +85,10 @@ class _$ProjectModelCopyWithImpl<$Res, $Val extends ProjectModel>
           ? _value.layers
           : layers // ignore: cast_nullable_to_non_nullable
               as List<LayerModel>,
-      cachedImageUrl: freezed == cachedImageUrl
-          ? _value.cachedImageUrl
-          : cachedImageUrl // ignore: cast_nullable_to_non_nullable
-              as String?,
+      cachedImage: freezed == cachedImage
+          ? _value.cachedImage
+          : cachedImage // ignore: cast_nullable_to_non_nullable
+              as Uint8List?,
       createdAt: null == createdAt
           ? _value.createdAt
           : createdAt // ignore: cast_nullable_to_non_nullable
@@ -122,10 +122,10 @@ abstract class _$$ProjectModelImplCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {String id,
+      {int id,
       String name,
       List<LayerModel> layers,
-      String? cachedImageUrl,
+      Uint8List? cachedImage,
       int createdAt,
       int lastModified,
       Size canvasSize,
@@ -147,7 +147,7 @@ class __$$ProjectModelImplCopyWithImpl<$Res>
     Object? id = null,
     Object? name = null,
     Object? layers = null,
-    Object? cachedImageUrl = freezed,
+    Object? cachedImage = freezed,
     Object? createdAt = null,
     Object? lastModified = null,
     Object? canvasSize = null,
@@ -158,7 +158,7 @@ class __$$ProjectModelImplCopyWithImpl<$Res>
       id: null == id
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
-              as String,
+              as int,
       name: null == name
           ? _value.name
           : name // ignore: cast_nullable_to_non_nullable
@@ -167,10 +167,10 @@ class __$$ProjectModelImplCopyWithImpl<$Res>
           ? _value._layers
           : layers // ignore: cast_nullable_to_non_nullable
               as List<LayerModel>,
-      cachedImageUrl: freezed == cachedImageUrl
-          ? _value.cachedImageUrl
-          : cachedImageUrl // ignore: cast_nullable_to_non_nullable
-              as String?,
+      cachedImage: freezed == cachedImage
+          ? _value.cachedImage
+          : cachedImage // ignore: cast_nullable_to_non_nullable
+              as Uint8List?,
       createdAt: null == createdAt
           ? _value.createdAt
           : createdAt // ignore: cast_nullable_to_non_nullable
@@ -202,7 +202,7 @@ class _$ProjectModelImpl extends _ProjectModel {
       {required this.id,
       required this.name,
       required final List<LayerModel> layers,
-      this.cachedImageUrl,
+      this.cachedImage,
       required this.createdAt,
       required this.lastModified,
       this.canvasSize = const Size(1080, 1920),
@@ -212,7 +212,7 @@ class _$ProjectModelImpl extends _ProjectModel {
         super._();
 
   @override
-  final String id;
+  final int id;
   @override
   final String name;
   final List<LayerModel> _layers;
@@ -224,7 +224,7 @@ class _$ProjectModelImpl extends _ProjectModel {
   }
 
   @override
-  final String? cachedImageUrl;
+  final Uint8List? cachedImage;
   @override
   final int createdAt;
   @override
@@ -240,7 +240,7 @@ class _$ProjectModelImpl extends _ProjectModel {
 
   @override
   String toString() {
-    return 'ProjectModel(id: $id, name: $name, layers: $layers, cachedImageUrl: $cachedImageUrl, createdAt: $createdAt, lastModified: $lastModified, canvasSize: $canvasSize, zoomLevel: $zoomLevel, lastViewportPosition: $lastViewportPosition)';
+    return 'ProjectModel(id: $id, name: $name, layers: $layers, cachedImage: $cachedImage, createdAt: $createdAt, lastModified: $lastModified, canvasSize: $canvasSize, zoomLevel: $zoomLevel, lastViewportPosition: $lastViewportPosition)';
   }
 
   @override
@@ -251,8 +251,8 @@ class _$ProjectModelImpl extends _ProjectModel {
             (identical(other.id, id) || other.id == id) &&
             (identical(other.name, name) || other.name == name) &&
             const DeepCollectionEquality().equals(other._layers, _layers) &&
-            (identical(other.cachedImageUrl, cachedImageUrl) ||
-                other.cachedImageUrl == cachedImageUrl) &&
+            const DeepCollectionEquality()
+                .equals(other.cachedImage, cachedImage) &&
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
             (identical(other.lastModified, lastModified) ||
@@ -271,7 +271,7 @@ class _$ProjectModelImpl extends _ProjectModel {
       id,
       name,
       const DeepCollectionEquality().hash(_layers),
-      cachedImageUrl,
+      const DeepCollectionEquality().hash(cachedImage),
       createdAt,
       lastModified,
       canvasSize,
@@ -287,10 +287,10 @@ class _$ProjectModelImpl extends _ProjectModel {
 
 abstract class _ProjectModel extends ProjectModel {
   const factory _ProjectModel(
-      {required final String id,
+      {required final int id,
       required final String name,
       required final List<LayerModel> layers,
-      final String? cachedImageUrl,
+      final Uint8List? cachedImage,
       required final int createdAt,
       required final int lastModified,
       final Size canvasSize,
@@ -299,13 +299,13 @@ abstract class _ProjectModel extends ProjectModel {
   const _ProjectModel._() : super._();
 
   @override
-  String get id;
+  int get id;
   @override
   String get name;
   @override
   List<LayerModel> get layers;
   @override
-  String? get cachedImageUrl;
+  Uint8List? get cachedImage;
   @override
   int get createdAt;
   @override
@@ -324,16 +324,13 @@ abstract class _ProjectModel extends ProjectModel {
 
 /// @nodoc
 mixin _$LayerModel {
-  String get id => throw _privateConstructorUsedError;
+  int get id => throw _privateConstructorUsedError;
   String get name => throw _privateConstructorUsedError;
   bool get isVisible => throw _privateConstructorUsedError;
   bool get isLocked => throw _privateConstructorUsedError;
   bool get isBackground => throw _privateConstructorUsedError;
   double get opacity => throw _privateConstructorUsedError;
-  String? get imagePath =>
-      throw _privateConstructorUsedError; // File path to the layer image
-  List<LayerStateModel> get prevStates => throw _privateConstructorUsedError;
-  List<LayerStateModel> get redoStates => throw _privateConstructorUsedError;
+  List<LayerStateModel> get states => throw _privateConstructorUsedError;
 
   @JsonKey(ignore: true)
   $LayerModelCopyWith<LayerModel> get copyWith =>
@@ -347,15 +344,13 @@ abstract class $LayerModelCopyWith<$Res> {
       _$LayerModelCopyWithImpl<$Res, LayerModel>;
   @useResult
   $Res call(
-      {String id,
+      {int id,
       String name,
       bool isVisible,
       bool isLocked,
       bool isBackground,
       double opacity,
-      String? imagePath,
-      List<LayerStateModel> prevStates,
-      List<LayerStateModel> redoStates});
+      List<LayerStateModel> states});
 }
 
 /// @nodoc
@@ -377,15 +372,13 @@ class _$LayerModelCopyWithImpl<$Res, $Val extends LayerModel>
     Object? isLocked = null,
     Object? isBackground = null,
     Object? opacity = null,
-    Object? imagePath = freezed,
-    Object? prevStates = null,
-    Object? redoStates = null,
+    Object? states = null,
   }) {
     return _then(_value.copyWith(
       id: null == id
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
-              as String,
+              as int,
       name: null == name
           ? _value.name
           : name // ignore: cast_nullable_to_non_nullable
@@ -406,17 +399,9 @@ class _$LayerModelCopyWithImpl<$Res, $Val extends LayerModel>
           ? _value.opacity
           : opacity // ignore: cast_nullable_to_non_nullable
               as double,
-      imagePath: freezed == imagePath
-          ? _value.imagePath
-          : imagePath // ignore: cast_nullable_to_non_nullable
-              as String?,
-      prevStates: null == prevStates
-          ? _value.prevStates
-          : prevStates // ignore: cast_nullable_to_non_nullable
-              as List<LayerStateModel>,
-      redoStates: null == redoStates
-          ? _value.redoStates
-          : redoStates // ignore: cast_nullable_to_non_nullable
+      states: null == states
+          ? _value.states
+          : states // ignore: cast_nullable_to_non_nullable
               as List<LayerStateModel>,
     ) as $Val);
   }
@@ -431,15 +416,13 @@ abstract class _$$LayerModelImplCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {String id,
+      {int id,
       String name,
       bool isVisible,
       bool isLocked,
       bool isBackground,
       double opacity,
-      String? imagePath,
-      List<LayerStateModel> prevStates,
-      List<LayerStateModel> redoStates});
+      List<LayerStateModel> states});
 }
 
 /// @nodoc
@@ -459,15 +442,13 @@ class __$$LayerModelImplCopyWithImpl<$Res>
     Object? isLocked = null,
     Object? isBackground = null,
     Object? opacity = null,
-    Object? imagePath = freezed,
-    Object? prevStates = null,
-    Object? redoStates = null,
+    Object? states = null,
   }) {
     return _then(_$LayerModelImpl(
       id: null == id
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
-              as String,
+              as int,
       name: null == name
           ? _value.name
           : name // ignore: cast_nullable_to_non_nullable
@@ -488,17 +469,9 @@ class __$$LayerModelImplCopyWithImpl<$Res>
           ? _value.opacity
           : opacity // ignore: cast_nullable_to_non_nullable
               as double,
-      imagePath: freezed == imagePath
-          ? _value.imagePath
-          : imagePath // ignore: cast_nullable_to_non_nullable
-              as String?,
-      prevStates: null == prevStates
-          ? _value._prevStates
-          : prevStates // ignore: cast_nullable_to_non_nullable
-              as List<LayerStateModel>,
-      redoStates: null == redoStates
-          ? _value._redoStates
-          : redoStates // ignore: cast_nullable_to_non_nullable
+      states: null == states
+          ? _value._states
+          : states // ignore: cast_nullable_to_non_nullable
               as List<LayerStateModel>,
     ));
   }
@@ -514,15 +487,12 @@ class _$LayerModelImpl extends _LayerModel {
       this.isLocked = false,
       this.isBackground = false,
       this.opacity = 1.0,
-      this.imagePath,
-      final List<LayerStateModel> prevStates = const [],
-      final List<LayerStateModel> redoStates = const []})
-      : _prevStates = prevStates,
-        _redoStates = redoStates,
+      final List<LayerStateModel> states = const []})
+      : _states = states,
         super._();
 
   @override
-  final String id;
+  final int id;
   @override
   final String name;
   @override
@@ -537,31 +507,18 @@ class _$LayerModelImpl extends _LayerModel {
   @override
   @JsonKey()
   final double opacity;
-  @override
-  final String? imagePath;
-// File path to the layer image
-  final List<LayerStateModel> _prevStates;
-// File path to the layer image
+  final List<LayerStateModel> _states;
   @override
   @JsonKey()
-  List<LayerStateModel> get prevStates {
-    if (_prevStates is EqualUnmodifiableListView) return _prevStates;
+  List<LayerStateModel> get states {
+    if (_states is EqualUnmodifiableListView) return _states;
     // ignore: implicit_dynamic_type
-    return EqualUnmodifiableListView(_prevStates);
-  }
-
-  final List<LayerStateModel> _redoStates;
-  @override
-  @JsonKey()
-  List<LayerStateModel> get redoStates {
-    if (_redoStates is EqualUnmodifiableListView) return _redoStates;
-    // ignore: implicit_dynamic_type
-    return EqualUnmodifiableListView(_redoStates);
+    return EqualUnmodifiableListView(_states);
   }
 
   @override
   String toString() {
-    return 'LayerModel(id: $id, name: $name, isVisible: $isVisible, isLocked: $isLocked, isBackground: $isBackground, opacity: $opacity, imagePath: $imagePath, prevStates: $prevStates, redoStates: $redoStates)';
+    return 'LayerModel(id: $id, name: $name, isVisible: $isVisible, isLocked: $isLocked, isBackground: $isBackground, opacity: $opacity, states: $states)';
   }
 
   @override
@@ -578,26 +535,12 @@ class _$LayerModelImpl extends _LayerModel {
             (identical(other.isBackground, isBackground) ||
                 other.isBackground == isBackground) &&
             (identical(other.opacity, opacity) || other.opacity == opacity) &&
-            (identical(other.imagePath, imagePath) ||
-                other.imagePath == imagePath) &&
-            const DeepCollectionEquality()
-                .equals(other._prevStates, _prevStates) &&
-            const DeepCollectionEquality()
-                .equals(other._redoStates, _redoStates));
+            const DeepCollectionEquality().equals(other._states, _states));
   }
 
   @override
-  int get hashCode => Object.hash(
-      runtimeType,
-      id,
-      name,
-      isVisible,
-      isLocked,
-      isBackground,
-      opacity,
-      imagePath,
-      const DeepCollectionEquality().hash(_prevStates),
-      const DeepCollectionEquality().hash(_redoStates));
+  int get hashCode => Object.hash(runtimeType, id, name, isVisible, isLocked,
+      isBackground, opacity, const DeepCollectionEquality().hash(_states));
 
   @JsonKey(ignore: true)
   @override
@@ -608,19 +551,17 @@ class _$LayerModelImpl extends _LayerModel {
 
 abstract class _LayerModel extends LayerModel {
   const factory _LayerModel(
-      {required final String id,
+      {required final int id,
       required final String name,
       final bool isVisible,
       final bool isLocked,
       final bool isBackground,
       final double opacity,
-      final String? imagePath,
-      final List<LayerStateModel> prevStates,
-      final List<LayerStateModel> redoStates}) = _$LayerModelImpl;
+      final List<LayerStateModel> states}) = _$LayerModelImpl;
   const _LayerModel._() : super._();
 
   @override
-  String get id;
+  int get id;
   @override
   String get name;
   @override
@@ -632,11 +573,7 @@ abstract class _LayerModel extends LayerModel {
   @override
   double get opacity;
   @override
-  String? get imagePath;
-  @override // File path to the layer image
-  List<LayerStateModel> get prevStates;
-  @override
-  List<LayerStateModel> get redoStates;
+  List<LayerStateModel> get states;
   @override
   @JsonKey(ignore: true)
   _$$LayerModelImplCopyWith<_$LayerModelImpl> get copyWith =>
@@ -645,6 +582,7 @@ abstract class _LayerModel extends LayerModel {
 
 /// @nodoc
 mixin _$LayerStateModel {
+  int get id => throw _privateConstructorUsedError;
   DrawingPath get drawingPath => throw _privateConstructorUsedError;
 
   @JsonKey(ignore: true)
@@ -658,7 +596,7 @@ abstract class $LayerStateModelCopyWith<$Res> {
           LayerStateModel value, $Res Function(LayerStateModel) then) =
       _$LayerStateModelCopyWithImpl<$Res, LayerStateModel>;
   @useResult
-  $Res call({DrawingPath drawingPath});
+  $Res call({int id, DrawingPath drawingPath});
 }
 
 /// @nodoc
@@ -674,9 +612,14 @@ class _$LayerStateModelCopyWithImpl<$Res, $Val extends LayerStateModel>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
+    Object? id = null,
     Object? drawingPath = null,
   }) {
     return _then(_value.copyWith(
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as int,
       drawingPath: null == drawingPath
           ? _value.drawingPath
           : drawingPath // ignore: cast_nullable_to_non_nullable
@@ -693,7 +636,7 @@ abstract class _$$LayerStateModelImplCopyWith<$Res>
       __$$LayerStateModelImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({DrawingPath drawingPath});
+  $Res call({int id, DrawingPath drawingPath});
 }
 
 /// @nodoc
@@ -707,9 +650,14 @@ class __$$LayerStateModelImplCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
+    Object? id = null,
     Object? drawingPath = null,
   }) {
     return _then(_$LayerStateModelImpl(
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as int,
       drawingPath: null == drawingPath
           ? _value.drawingPath
           : drawingPath // ignore: cast_nullable_to_non_nullable
@@ -721,14 +669,17 @@ class __$$LayerStateModelImplCopyWithImpl<$Res>
 /// @nodoc
 
 class _$LayerStateModelImpl extends _LayerStateModel {
-  const _$LayerStateModelImpl({required this.drawingPath}) : super._();
+  const _$LayerStateModelImpl({required this.id, required this.drawingPath})
+      : super._();
 
+  @override
+  final int id;
   @override
   final DrawingPath drawingPath;
 
   @override
   String toString() {
-    return 'LayerStateModel(drawingPath: $drawingPath)';
+    return 'LayerStateModel(id: $id, drawingPath: $drawingPath)';
   }
 
   @override
@@ -736,12 +687,13 @@ class _$LayerStateModelImpl extends _LayerStateModel {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$LayerStateModelImpl &&
+            (identical(other.id, id) || other.id == id) &&
             (identical(other.drawingPath, drawingPath) ||
                 other.drawingPath == drawingPath));
   }
 
   @override
-  int get hashCode => Object.hash(runtimeType, drawingPath);
+  int get hashCode => Object.hash(runtimeType, id, drawingPath);
 
   @JsonKey(ignore: true)
   @override
@@ -752,10 +704,13 @@ class _$LayerStateModelImpl extends _LayerStateModel {
 }
 
 abstract class _LayerStateModel extends LayerStateModel {
-  const factory _LayerStateModel({required final DrawingPath drawingPath}) =
-      _$LayerStateModelImpl;
+  const factory _LayerStateModel(
+      {required final int id,
+      required final DrawingPath drawingPath}) = _$LayerStateModelImpl;
   const _LayerStateModel._() : super._();
 
+  @override
+  int get id;
   @override
   DrawingPath get drawingPath;
   @override
