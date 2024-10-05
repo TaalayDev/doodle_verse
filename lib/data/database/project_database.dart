@@ -140,8 +140,6 @@ class AppDatabase extends _$AppDatabase {
         ));
       }
 
-      print('Layer states: ${layerStates.length}');
-
       return LayerModel(
         id: layerRow.id,
         name: layerRow.name,
@@ -389,15 +387,6 @@ class AppDatabase extends _$AppDatabase {
         width: Value(drawingPath.width),
       ));
     }
-    await checkLayer(layer.id);
-  }
-
-  Future<void> checkLayer(int layerId) async {
-    final states = await (select(layerStatesTable)
-          ..where((tbl) => tbl.layerId.equals(layerId)))
-        .get();
-
-    print('check Layer states: ${states.length}');
   }
 
   Future<void> deleteLayer(int layerId) async {
