@@ -118,9 +118,7 @@ class LayerStateModel with _$LayerStateModel {
       drawingPath: DrawingPath(
         points: (points as List)
             .map(
-              (pointJson) => DrawingPoint(
-                offset: Offset(pointJson['x'], pointJson['y']),
-              ),
+              (pointJson) => Offset(pointJson['x'], pointJson['y']),
             )
             .toList(),
         brush: ToolsManager().getBrush(json['brush']),
@@ -135,8 +133,8 @@ class LayerStateModel with _$LayerStateModel {
       'points': drawingPath.points
           .map(
             (point) => {
-              'x': point.offset.dx,
-              'y': point.offset.dy,
+              'x': point.dx,
+              'y': point.dy,
             },
           )
           .toList(),

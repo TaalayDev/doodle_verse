@@ -1,5 +1,6 @@
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'dart:math';
 
 import '../../data.dart';
@@ -17,7 +18,18 @@ class DrawingController extends ChangeNotifier {
   final List<DrawingPath> paths = [];
   final List<DrawingPath> _redoStack = [];
   DrawingPath? currentPath;
+  ui.Image? _cachedImage;
+  ui.Image? get cachedImage => _cachedImage;
+  set cachedImage(ui.Image? image) {
+    _cachedImage = image;
+  }
+
+  int lastPathsLength = 0;
+
   final DirtyRegionTracker dirtyRegionTracker = DirtyRegionTracker();
+
+  final double devicePixelRatio =
+      WidgetsBinding.instance.window.devicePixelRatio;
 
   bool get canUndo => paths.isNotEmpty;
   bool get canRedo => _redoStack.isNotEmpty;
@@ -27,7 +39,7 @@ class DrawingController extends ChangeNotifier {
       brush: brush,
       color: color,
       width: width,
-      points: [DrawingPoint(offset: offset)],
+      points: [offset],
     );
     dirtyRegionTracker.addPath(currentPath!);
     notifyListeners();
@@ -35,34 +47,30 @@ class DrawingController extends ChangeNotifier {
 
   void addPoint(Offset offset, BrushData brush, double brushSize) {
     if (currentPath != null) {
-      currentPath!.points.add(
-        DrawingPoint(
-          offset: offset,
-          randomSize: brushSize,
-        ),
-      );
+      currentPath!.points.add(offset);
+
       dirtyRegionTracker.addPath(currentPath!);
       notifyListeners();
     }
   }
 
   void endPath() async {
-    if (currentPath != null) {
-      if (currentPath!.brush.brush != null) {
-        await _capturePathImage(currentPath!);
-      }
-      paths.add(currentPath!);
+    if (currentPath case var path?) {
+      paths.add(path);
       currentPath = null;
       _redoStack.clear();
+      _updateTilesForPath(paths.last);
       notifyListeners();
     }
   }
+
+  void _updateTilesForPath(DrawingPath path) {}
 
   void undo() {
     if (paths.isNotEmpty) {
       final removedPath = paths.removeLast();
       _redoStack.add(removedPath);
-      dirtyRegionTracker.addPath(removedPath);
+      _updateTilesForPath(removedPath);
       notifyListeners();
     }
   }
@@ -71,7 +79,7 @@ class DrawingController extends ChangeNotifier {
     if (_redoStack.isNotEmpty) {
       final restoredPath = _redoStack.removeLast();
       paths.add(restoredPath);
-      dirtyRegionTracker.addPath(restoredPath);
+      _updateTilesForPath(restoredPath);
       notifyListeners();
     }
   }
@@ -80,7 +88,6 @@ class DrawingController extends ChangeNotifier {
     paths.clear();
     currentPath = null;
     _redoStack.clear();
-    dirtyRegionTracker.addDirtyRegion(Rect.largest);
     notifyListeners();
   }
 
@@ -95,37 +102,14 @@ class DrawingController extends ChangeNotifier {
   void loadStates(List<DrawingPath> newPaths, List<DrawingPath> redoPaths) {
     paths.addAll(newPaths);
     _redoStack.addAll(redoPaths);
-    dirtyRegionTracker.addDirtyRegion(Rect.largest);
+    _rebuildTileCache();
     notifyListeners();
   }
 
-  Future<void> _capturePathImage(DrawingPath path) async {
-    path.image = await _renderPathsToImage(path);
-    notifyListeners();
-  }
-
-  Future<ui.Image?> _renderPathsToImage(DrawingPath? drawingPath) async {
-    if (drawingPath == null) return null;
-
-    final size = MediaQuery.of(context).size;
-
-    final recorder = ui.PictureRecorder();
-    final canvas = Canvas(recorder);
-    canvas.saveLayer(
-      Rect.fromLTWH(0, 0, size.width, size.height),
-      Paint(),
-    );
-    DrawingCanvas().drawPath(canvas, size, drawingPath);
-    canvas.restore();
-
-    final picture = recorder.endRecording();
-
-    final image = await picture.toImage(
-      size.width.toInt(),
-      size.height.toInt(),
-    );
-
-    return image;
+  void _rebuildTileCache() {
+    for (var path in paths) {
+      _updateTilesForPath(path);
+    }
   }
 
   @override

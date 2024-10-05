@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/canvas/tools_manager.dart';
 import '../../core/canvas/shader_manager.dart';
 import '../../core.dart';
+import 'demo_draw_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -20,6 +21,11 @@ class _SplashScreenState extends State<SplashScreen> {
 
   void _navigateToNextScreen() {
     const MainRoute().go(context);
+    // Navigator.of(context).push(
+    //   MaterialPageRoute(
+    //     builder: (context) => const DemoDrawingScreen(),
+    //   ),
+    // );
   }
 
   void _init() async {

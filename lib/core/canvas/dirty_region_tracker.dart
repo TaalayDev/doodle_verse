@@ -17,10 +17,10 @@ class DirtyRegionTracker {
     double maxY = double.negativeInfinity;
 
     for (var point in path.points) {
-      minX = minX < point.offset.dx ? minX : point.offset.dx;
-      minY = minY < point.offset.dy ? minY : point.offset.dy;
-      maxX = maxX > point.offset.dx ? maxX : point.offset.dx;
-      maxY = maxY > point.offset.dy ? maxY : point.offset.dy;
+      minX = minX < point.dx ? minX : point.dx;
+      minY = minY < point.dy ? minY : point.dy;
+      maxX = maxX > point.dx ? maxX : point.dx;
+      maxY = maxY > point.dy ? maxY : point.dy;
     }
 
     // Add some padding to the region to account for stroke width

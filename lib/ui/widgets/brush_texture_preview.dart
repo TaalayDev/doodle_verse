@@ -60,8 +60,8 @@ class _BrushTexturePainter extends CustomPainter {
     DrawingCanvas().drawPath(canvas, size, drawingPath);
   }
 
-  List<DrawingPoint> _createCurvedLinePoints(Size size) {
-    final points = <DrawingPoint>[];
+  List<Offset> _createCurvedLinePoints(Size size) {
+    final points = <Offset>[];
 
     final double width = size.width;
     final double height = size.height;
@@ -71,19 +71,15 @@ class _BrushTexturePainter extends CustomPainter {
     final double quarterHeight = height / 4;
     final double eighthWidth = width / 8;
 
-    points.add(DrawingPoint(offset: Offset(5, midHeight)));
-    points.add(
-        DrawingPoint(offset: Offset(eighthWidth, midHeight - quarterHeight)));
-    points.add(DrawingPoint(offset: Offset(quarterWidth, midHeight)));
-    points.add(DrawingPoint(
-        offset: Offset(eighthWidth * 3, midHeight + quarterHeight)));
-    points.add(DrawingPoint(offset: Offset(midWidth, midHeight)));
-    points.add(DrawingPoint(
-        offset: Offset(eighthWidth * 5, midHeight - quarterHeight)));
-    points.add(DrawingPoint(offset: Offset(quarterWidth * 3, midHeight)));
-    points.add(DrawingPoint(
-        offset: Offset(eighthWidth * 7, midHeight + quarterHeight)));
-    points.add(DrawingPoint(offset: Offset(width, midHeight)));
+    points.add(Offset(5, midHeight));
+    points.add(Offset(eighthWidth, midHeight - quarterHeight));
+    points.add(Offset(quarterWidth, midHeight));
+    points.add(Offset(eighthWidth * 3, midHeight + quarterHeight));
+    points.add(Offset(midWidth, midHeight));
+    points.add(Offset(eighthWidth * 5, midHeight - quarterHeight));
+    points.add(Offset(quarterWidth * 3, midHeight));
+    points.add(Offset(eighthWidth * 7, midHeight + quarterHeight));
+    points.add(Offset(width, midHeight));
 
     return points;
   }

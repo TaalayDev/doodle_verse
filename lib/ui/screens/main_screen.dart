@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:doodle_verse/ui/screens/pixel_draw_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -21,6 +22,16 @@ class MainScreen extends HookConsumerWidget {
       appBar: AppBar(
         title: const Text('Projects'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.brush_outlined),
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => const PixelDrawScreen(id: '1'),
+                ),
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Feather.info),
             onPressed: () {

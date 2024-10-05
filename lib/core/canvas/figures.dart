@@ -12,8 +12,8 @@ final rectangleTool = BrushData(
   customPainter: (canvas, size, drawingPath) {
     if (drawingPath.points.length < 2) return;
 
-    final startPoint = drawingPath.points.first.offset;
-    final endPoint = drawingPath.points.last.offset;
+    final startPoint = drawingPath.points.first;
+    final endPoint = drawingPath.points.last;
 
     final rect = Rect.fromPoints(startPoint, endPoint);
 
@@ -33,8 +33,8 @@ final circleTool = BrushData(
   customPainter: (canvas, size, drawingPath) {
     if (drawingPath.points.length < 2) return;
 
-    final startPoint = drawingPath.points.first.offset;
-    final endPoint = drawingPath.points.last.offset;
+    final startPoint = drawingPath.points.first;
+    final endPoint = drawingPath.points.last;
 
     final radius = (startPoint - endPoint).distance;
 
@@ -54,8 +54,8 @@ final lineTool = BrushData(
   customPainter: (canvas, size, drawingPath) {
     if (drawingPath.points.length < 2) return;
 
-    final startPoint = drawingPath.points.first.offset;
-    final endPoint = drawingPath.points.last.offset;
+    final startPoint = drawingPath.points.first;
+    final endPoint = drawingPath.points.last;
 
     final paint = Paint()
       ..color = drawingPath.color
@@ -78,8 +78,8 @@ final triangleTool = BrushData(
       ..style = PaintingStyle.stroke
       ..strokeWidth = drawingPath.width;
 
-    final startPoint = drawingPath.points.first.offset;
-    final endPoint = drawingPath.points.last.offset;
+    final startPoint = drawingPath.points.first;
+    final endPoint = drawingPath.points.last;
 
     final path = Path()
       ..moveTo(startPoint.dx, endPoint.dy)
@@ -98,8 +98,8 @@ final arrowTool = BrushData(
   customPainter: (canvas, size, drawingPath) {
     if (drawingPath.points.length < 2) return;
 
-    final startPoint = drawingPath.points.first.offset;
-    final endPoint = drawingPath.points.last.offset;
+    final startPoint = drawingPath.points.first;
+    final endPoint = drawingPath.points.last;
 
     final paint = Paint()
       ..color = drawingPath.color
@@ -141,8 +141,8 @@ final ellipseTool = BrushData(
   customPainter: (canvas, size, drawingPath) {
     if (drawingPath.points.length < 2) return;
 
-    final startPoint = drawingPath.points.first.offset;
-    final endPoint = drawingPath.points.last.offset;
+    final startPoint = drawingPath.points.first;
+    final endPoint = drawingPath.points.last;
 
     final rect = Rect.fromPoints(startPoint, endPoint);
 
@@ -170,7 +170,7 @@ final polygonTool = BrushData(
     final path = Path();
 
     for (int i = 0; i < drawingPath.points.length; i++) {
-      final point = drawingPath.points[i].offset;
+      final point = drawingPath.points[i];
 
       if (i == 0) {
         path.moveTo(point.dx, point.dy);
@@ -202,8 +202,8 @@ final starTool = BrushData(
 
     final path = Path();
 
-    final startPoint = drawingPath.points.first.offset;
-    final endPoint = drawingPath.points.last.offset;
+    final startPoint = drawingPath.points.first;
+    final endPoint = drawingPath.points.last;
 
     final radius = (startPoint - endPoint).distance;
 
@@ -240,8 +240,8 @@ final heartTool = BrushData(
   customPainter: (canvas, size, drawingPath) {
     if (drawingPath.points.length < 2) return;
 
-    final startPoint = drawingPath.points.first.offset;
-    final endPoint = drawingPath.points.last.offset;
+    final startPoint = drawingPath.points.first;
+    final endPoint = drawingPath.points.last;
 
     final width = (endPoint.dx - startPoint.dx).abs();
     final height = (endPoint.dy - startPoint.dy).abs();
@@ -287,8 +287,8 @@ final spiralTool = BrushData(
       ..strokeWidth = drawingPath.width
       ..strokeCap = StrokeCap.round;
 
-    final startPoint = drawingPath.points.first.offset;
-    final endPoint = drawingPath.points.last.offset;
+    final startPoint = drawingPath.points.first;
+    final endPoint = drawingPath.points.last;
 
     final center = Offset(
       (startPoint.dx + endPoint.dx) / 2,
@@ -325,8 +325,8 @@ final cloudTool = BrushData(
   customPainter: (canvas, size, drawingPath) {
     if (drawingPath.points.length < 2) return;
 
-    final startPoint = drawingPath.points.first.offset;
-    final endPoint = drawingPath.points.last.offset;
+    final startPoint = drawingPath.points.first;
+    final endPoint = drawingPath.points.last;
 
     // Calculate the bounding rectangle
     final left = min(startPoint.dx, endPoint.dx);
@@ -376,8 +376,8 @@ final lightningTool = BrushData(
   customPainter: (canvas, size, drawingPath) {
     if (drawingPath.points.length < 2) return;
 
-    final startPoint = drawingPath.points.first.offset;
-    final endPoint = drawingPath.points.last.offset;
+    final startPoint = drawingPath.points.first;
+    final endPoint = drawingPath.points.last;
 
     final path = Path();
     path.moveTo(startPoint.dx, startPoint.dy);
@@ -442,8 +442,8 @@ final pentagonTool = BrushData(
       ..style = PaintingStyle.stroke
       ..strokeWidth = drawingPath.width;
 
-    final startPoint = drawingPath.points.first.offset;
-    final endPoint = drawingPath.points.last.offset;
+    final startPoint = drawingPath.points.first;
+    final endPoint = drawingPath.points.last;
 
     final center = Offset(
       (startPoint.dx + endPoint.dx) / 2,
@@ -483,8 +483,8 @@ final hexagonTool = BrushData(
       ..style = PaintingStyle.stroke
       ..strokeWidth = drawingPath.width;
 
-    final startPoint = drawingPath.points.first.offset;
-    final endPoint = drawingPath.points.last.offset;
+    final startPoint = drawingPath.points.first;
+    final endPoint = drawingPath.points.last;
 
     final center = Offset(
       (startPoint.dx + endPoint.dx) / 2,
@@ -524,8 +524,8 @@ final parallelogramTool = BrushData(
       ..style = PaintingStyle.stroke
       ..strokeWidth = drawingPath.width;
 
-    final startPoint = drawingPath.points.first.offset;
-    final endPoint = drawingPath.points.last.offset;
+    final startPoint = drawingPath.points.first;
+    final endPoint = drawingPath.points.last;
 
     final width = (endPoint.dx - startPoint.dx).abs();
     final height = (endPoint.dy - startPoint.dy).abs();
@@ -555,8 +555,8 @@ final trapezoidTool = BrushData(
       ..style = PaintingStyle.stroke
       ..strokeWidth = drawingPath.width;
 
-    final startPoint = drawingPath.points.first.offset;
-    final endPoint = drawingPath.points.last.offset;
+    final startPoint = drawingPath.points.first;
+    final endPoint = drawingPath.points.last;
 
     final width = (endPoint.dx - startPoint.dx).abs();
     final height = (endPoint.dy - startPoint.dy).abs();

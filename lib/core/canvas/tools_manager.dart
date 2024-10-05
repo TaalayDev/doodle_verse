@@ -1,3 +1,5 @@
+import 'package:doodle_verse/core/canvas/pencil_effect.dart';
+
 import '../../data.dart';
 import 'brushes.dart' as b;
 import 'figures.dart' as f;
@@ -12,6 +14,7 @@ class ToolsManager {
   final BrushData eraser = b.eraser;
   late final BrushData pencil;
   late final BrushData defaultBrush;
+  late final PencilEffect pencilEffect;
 
   List<BrushData> get brushes => _brushes;
   List<BrushData> get figures => _figures;
@@ -26,6 +29,9 @@ class ToolsManager {
   }
 
   Future<void> loadTools() async {
+    final noiseTexture = await PencilEffect.createNoiseTexture(64, 64);
+    pencilEffect = PencilEffect(noiseTexture);
+
     pencil = await b.pencil;
     defaultBrush = b.defaultBrush;
     _brushes.addAll([

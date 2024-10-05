@@ -22,7 +22,7 @@ final fillTool = BrushData(
   customPainter: (canvas, size, drawingPath) async {
     if (drawingPath.points.isEmpty) return;
 
-    final startPoint = drawingPath.points.first.offset;
+    final startPoint = drawingPath.points.first;
 
     // Create an image from the canvas
     final recorder = ui.PictureRecorder();

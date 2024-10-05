@@ -86,7 +86,9 @@ class _DrawBodyState extends State<DrawBody> {
   void initState() {
     super.initState();
     _drawingController = DrawingController(context);
-    _loadProject();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadProject();
+    });
   }
 
   void _loadProject() {
@@ -147,6 +149,14 @@ class _DrawBodyState extends State<DrawBody> {
     }
   }
 
+  double _calculateSize(BuildContext context) {
+    final screenSize = MediaQuery.sizeOf(context);
+    final width = screenSize.width;
+    final height = screenSize.height;
+
+    return width > height ? height : width;
+  }
+
   @override
   Widget build(BuildContext context) {
     return ShortcutsWrapper(
@@ -198,21 +208,47 @@ class _DrawBodyState extends State<DrawBody> {
         body: Stack(
           children: [
             // Drawing Canvas
-            RepaintBoundary(
-              key: _canvasKey,
-              child: GestureDetector(
-                onScaleStart: _onScaleStart,
-                onScaleUpdate: _onScaleUpdate,
-                onScaleEnd: _onScaleEnd,
-                child: Transform(
-                  transform: Matrix4.identity()
-                    ..translate(_offset.dx, _offset.dy)
-                    ..scale(_scale),
-                  child: ColoredBox(
-                    color: Colors.white,
-                    child: CustomPaint(
-                      painter: DrawingPainter(_drawingController),
-                      size: Size.infinite,
+            Center(
+              child: SizedBox(
+                width: _calculateSize(context),
+                height: _calculateSize(context),
+                child: GestureDetector(
+                  onScaleStart: _onScaleStart,
+                  onScaleUpdate: _onScaleUpdate,
+                  onScaleEnd: _onScaleEnd,
+                  child: Transform(
+                    transform: Matrix4.identity()
+                      ..translate(_offset.dx, _offset.dy)
+                      ..scale(_scale),
+                    child: RepaintBoundary(
+                      key: _canvasKey,
+                      child: ColoredBox(
+                        color: Colors.white,
+                        child: Stack(
+                          children: [
+                            Positioned.fill(
+                              child: CustomPaint(
+                                painter: DrawingPainter(
+                                  _drawingController,
+                                  isPreview: false,
+                                ),
+                                size: Size.infinite,
+                              ),
+                            ),
+                            Positioned.fill(
+                              child: IgnorePointer(
+                                child: CustomPaint(
+                                  painter: DrawingPainter(
+                                    _drawingController,
+                                    isPreview: true,
+                                  ),
+                                  size: Size.infinite,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -411,32 +447,38 @@ class _DrawBodyState extends State<DrawBody> {
 
   IconData _getBrushIcon(BrushData brush) {
     switch (brush.name) {
-      case 'pencil':
-        return Feather.edit_2;
-      case 'marker':
-        return Feather.edit_3;
-      case 'watercolor':
-        return Ionicons.brush_outline;
-      case 'sprayPaint':
-        return FontAwesome5Solid.spray_can;
-      case 'neon':
-        return Ionicons.flashlight_outline;
-      case 'crayon':
-        return Ionicons.pencil_outline;
-      case 'charcoal':
-        return Ionicons.contrast_outline;
-      case 'eraser':
-        return Fontisto.eraser;
+      case 'rectangle':
+        return Feather.square;
+      case 'circle':
+        return Feather.circle;
+      case 'line':
+        return Feather.minus;
+      case 'triangle':
+        return Feather.triangle;
+      case 'arrow':
+        return Feather.arrow_up;
+      case 'ellipse':
+        return Fontisto.ellipse;
+      case 'polygon':
+        return MaterialCommunityIcons.polymer;
+      case 'spiral':
+        return Feather.rotate_cw;
       case 'star':
         return Feather.star;
-      case 'sketchy':
-        return Feather.book_open;
+      case 'cloud':
+        return Feather.cloud;
       case 'heart':
         return Feather.heart;
-      case 'bubble':
-        return MaterialCommunityIcons.chart_bubble;
-      case 'glitter':
-        return Feather.star;
+      case 'lightning':
+        return MaterialCommunityIcons.lightning_bolt;
+      case 'pentagon':
+        return MaterialCommunityIcons.pentagon;
+      case 'hexagon':
+        return MaterialCommunityIcons.hexagon;
+      case 'parallelogram':
+        return Icons.paragliding;
+      case 'trapezoid':
+        return Icons.paragliding;
       default:
         return Feather.edit_2;
     }

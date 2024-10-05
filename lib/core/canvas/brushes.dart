@@ -1,5 +1,6 @@
 import 'dart:ui' as ui;
 import 'dart:math';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -7,7 +8,29 @@ import '../../config/const.dart';
 import '../../config/assets.dart';
 import '../../data.dart';
 import '../extensions/offset_extensions.dart';
+import 'pencil_effect.dart';
 import 'shader_manager.dart';
+
+Future<ui.Image?> _resizeImage(ui.Image image, int width, int height) async {
+  final recorder = ui.PictureRecorder();
+  final canvas = Canvas(recorder);
+  canvas.drawImageRect(
+    image,
+    Rect.fromLTWH(0, 0, image.width.toDouble(), image.height.toDouble()),
+    Rect.fromLTWH(0, 0, width.toDouble(), height.toDouble()),
+    Paint(),
+  );
+
+  final picture = recorder.endRecording();
+  final img = await picture.toImage(width, height);
+  return img.toByteData(format: ui.ImageByteFormat.png).then((byteData) {
+    final buffer = byteData!.buffer.asUint8List();
+    return ui
+        .instantiateImageCodec(buffer)
+        .then((codec) => codec.getNextFrame())
+        .then((frame) => frame.image);
+  });
+}
 
 Future<ui.Image?> _loadUIImage(String asset) async {
   final data = await rootBundle.load(asset);
@@ -15,7 +38,7 @@ Future<ui.Image?> _loadUIImage(String asset) async {
   final codec = await ui.instantiateImageCodec(bytes);
   final fi = await codec.getNextFrame();
 
-  return fi.image;
+  return _resizeImage(fi.image, 64, 64);
 }
 
 Future<BrushData> get pencil async => BrushData(
@@ -30,7 +53,7 @@ Future<BrushData> get pencil async => BrushData(
       random: [-1, 1],
       sizeRandom: [-3, 3],
       useBrushWidthDensity: false,
-      brush: await _loadUIImage(Assets.images.pencil),
+      brush: await _loadUIImage(Assets.images.stampPencil),
     );
 
 final softPencilBrush = BrushData(
@@ -45,20 +68,33 @@ final softPencilBrush = BrushData(
       ..strokeCap = StrokeCap.round
       ..style = PaintingStyle.stroke;
 
-    for (int i = 0; i < drawingPath.points.length - 1; i++) {
-      final p1 = drawingPath.points[i].offset;
-      final p2 = drawingPath.points[i + 1].offset;
+    final path = drawingPath.createPath();
+    final metrics = path.computeMetrics();
+    final metric = metrics.first;
+    final length = metric.length;
+
+    var distance = 0.0;
+    while (distance < length) {
+      final position = metric.getTangentForOffset(distance)!.position;
 
       for (int j = 0; j < 3; j++) {
-        final x = drawingPath.getRandom([i, p1.dx, p1.dy, j, 1]);
-        final y = drawingPath.getRandom([i, p1.dx, p1.dy, j, 2]);
+        final random1 = drawingPath.getRandom([position.dx, position.dy, j, 1]);
+        final random2 = drawingPath.getRandom([position.dx, position.dy, j, 2]);
+        final random3 = drawingPath.getRandom([position.dx, position.dy, j, 3]);
 
         final offset = Offset(
-          (x - 0.5) * drawingPath.width * 0.5,
-          (y - 0.5) * drawingPath.width * 0.5,
+          (random1 - 0.5) * drawingPath.width,
+          (random2 - 0.5) * drawingPath.width,
         );
-        canvas.drawLine(p1 + offset, p2 + offset, paint);
+
+        canvas.drawLine(
+          position + offset,
+          position + offset + Offset(random3 - 0.5, random3 - 0.5),
+          paint,
+        );
       }
+
+      distance += drawingPath.width * 0.5;
     }
   },
 );
@@ -76,8 +112,8 @@ final hardPencilBrush = BrushData(
       ..style = PaintingStyle.stroke;
 
     for (int i = 0; i < drawingPath.points.length - 1; i++) {
-      final p1 = drawingPath.points[i].offset;
-      final p2 = drawingPath.points[i + 1].offset;
+      final p1 = drawingPath.points[i];
+      final p2 = drawingPath.points[i + 1];
       canvas.drawLine(p1, p2, paint);
     }
   },
@@ -96,8 +132,8 @@ final sketchyPencilBrush = BrushData(
       ..style = PaintingStyle.stroke;
 
     for (int i = 0; i < drawingPath.points.length - 1; i++) {
-      final p1 = drawingPath.points[i].offset;
-      final p2 = drawingPath.points[i + 1].offset;
+      final p1 = drawingPath.points[i];
+      final p2 = drawingPath.points[i + 1];
 
       for (int j = 0; j < 4; j++) {
         final random1 = drawingPath.getRandom([i, p1.dx, p1.dy, j, 1]);
@@ -132,8 +168,8 @@ final coloredPencilBrush = BrushData(
       ..style = PaintingStyle.stroke;
 
     for (int i = 0; i < drawingPath.points.length - 1; i++) {
-      final p1 = drawingPath.points[i].offset;
-      final p2 = drawingPath.points[i + 1].offset;
+      final p1 = drawingPath.points[i];
+      final p2 = drawingPath.points[i + 1];
 
       // Main stroke
       canvas.drawLine(p1, p2, paint);
@@ -186,23 +222,7 @@ final watercolor = BrushData(
   sizeRandom: [-20, 20],
   useBrushWidthDensity: false,
   customPainter: (canvas, size, drawingPath) async {
-    final path = Path();
-    path.moveTo(
-      drawingPath.points.first.offset.dx,
-      drawingPath.points.first.offset.dy,
-    );
-
-    for (int i = 1; i < drawingPath.points.length; i++) {
-      final p0 = drawingPath.points[i - 1];
-      final p1 = drawingPath.points[i];
-
-      path.quadraticBezierTo(
-        p0.offset.dx,
-        p0.offset.dy,
-        (p0.offset.dx + p1.offset.dx) / 2,
-        (p0.offset.dy + p1.offset.dy) / 2,
-      );
-    }
+    final path = drawingPath.createPath();
 
     final paint = Paint()
       ..color = drawingPath.color
@@ -257,8 +277,8 @@ final crayon = BrushData(
       ..style = PaintingStyle.stroke;
 
     for (int i = 1; i < drawingPath.points.length; i++) {
-      final p0 = drawingPath.points[i - 1].offset;
-      final p1 = drawingPath.points[i].offset;
+      final p0 = drawingPath.points[i - 1];
+      final p1 = drawingPath.points[i];
 
       // Draw multiple lines with slight random offsets to mimic crayon texture
       for (int j = 0; j < 3; j++) {
@@ -297,10 +317,10 @@ final sprayPaint = BrushData(
 
     for (final point in drawingPath.points) {
       for (int i = 0; i < 20; i++) {
-        final dx = point.offset.dx +
-            (random.nextDouble() - 0.5) * drawingPath.width * 4;
-        final dy = point.offset.dy +
-            (random.nextDouble() - 0.5) * drawingPath.width * 4;
+        final dx =
+            point.dx + (random.nextDouble() - 0.5) * drawingPath.width * 4;
+        final dy =
+            point.dy + (random.nextDouble() - 0.5) * drawingPath.width * 4;
         final radius = random.nextDouble() * 1.5;
         canvas.drawCircle(Offset(dx, dy), radius, paint);
       }
@@ -340,8 +360,8 @@ final charcoal = BrushData(
 
     final path = Path();
     path.moveTo(
-      drawingPath.points.first.offset.dx,
-      drawingPath.points.first.offset.dy,
+      drawingPath.points.first.dx,
+      drawingPath.points.first.dy,
     );
 
     for (int i = 1; i < drawingPath.points.length; i++) {
@@ -353,15 +373,15 @@ final charcoal = BrushData(
 
       // Add random offsets to create a rough, smudged effect
       final controlPoint = Offset(
-        p0.offset.dx + (random1 - 0.5) * drawingPath.width * 0.5,
-        p0.offset.dy + (random2 - 0.5) * drawingPath.width * 0.5,
+        p0.dx + (random1 - 0.5) * drawingPath.width * 0.5,
+        p0.dy + (random2 - 0.5) * drawingPath.width * 0.5,
       );
 
       path.quadraticBezierTo(
         controlPoint.dx,
         controlPoint.dy,
-        (p0.offset.dx + p1.offset.dx) / 2,
-        (p0.offset.dy + p1.offset.dy) / 2,
+        (p0.dx + p1.dx) / 2,
+        (p0.dy + p1.dy) / 2,
       );
     }
 
@@ -382,7 +402,7 @@ final sketchy = BrushData(
       ..style = PaintingStyle.stroke;
 
     for (int j = 0; j < 3; j++) {
-      final firstOffset = drawingPath.points.first.offset;
+      final firstOffset = drawingPath.points.first;
       final random1 =
           drawingPath.getRandom([j, firstOffset.dx, firstOffset.dy, 1]);
       final random2 =
@@ -402,22 +422,16 @@ final sketchy = BrushData(
         final p0 = drawingPath.points[i - 1];
         final p1 = drawingPath.points[i];
 
-        final random4 =
-            drawingPath.getRandom([i, p1.offset.dx, p1.offset.dy, j, 4]);
-        final random5 =
-            drawingPath.getRandom([i, p1.offset.dy, p1.offset.dx, j, 5]);
-        final random6 =
-            drawingPath.getRandom([i, p1.offset.dx, p1.offset.dy, j, 6]);
-        final random7 =
-            drawingPath.getRandom([i, p1.offset.dy, p1.offset.dx, j, 7]);
+        final random4 = drawingPath.getRandom([i, p1.dx, p1.dy, j, 4]);
+        final random5 = drawingPath.getRandom([i, p1.dy, p1.dx, j, 5]);
+        final random6 = drawingPath.getRandom([i, p1.dx, p1.dy, j, 6]);
+        final random7 = drawingPath.getRandom([i, p1.dy, p1.dx, j, 7]);
 
         path.quadraticBezierTo(
-          p0.offset.dx + (random4 - 0.5) * drawingPath.width * 0.5,
-          p0.offset.dy + (random5 - 0.5) * drawingPath.width * 0.5,
-          (p0.offset.dx + p1.offset.dx) / 2 +
-              (random6 - 0.5) * drawingPath.width * 0.5,
-          (p0.offset.dy + p1.offset.dy) / 2 +
-              (random7 - 0.5) * drawingPath.width * 0.5,
+          p0.dx + (random4 - 0.5) * drawingPath.width * 0.5,
+          p0.dy + (random5 - 0.5) * drawingPath.width * 0.5,
+          (p0.dx + p1.dx) / 2 + (random6 - 0.5) * drawingPath.width * 0.5,
+          (p0.dy + p1.dy) / 2 + (random7 - 0.5) * drawingPath.width * 0.5,
         );
       }
 
@@ -438,7 +452,7 @@ final star = BrushData(
 
     for (final point in drawingPath.points) {
       final starPath = Path();
-      final center = point.offset;
+      final center = point;
       final size = drawingPath.width;
 
       for (int i = 0; i < 5; i++) {
@@ -478,7 +492,7 @@ final heart = BrushData(
       ..style = PaintingStyle.fill;
 
     for (final point in drawingPath.points) {
-      final center = point.offset;
+      final center = point;
       final size = drawingPath.width * 2.0;
 
       final path = Path();
@@ -523,12 +537,9 @@ final bubbleBrush = BrushData(
   densityOffset: 20,
   customPainter: (canvas, size, drawingPath) {
     for (final point in drawingPath.points) {
-      final random1 =
-          drawingPath.getRandom([point.offset.dx, point.offset.dy, 1]);
-      final random2 =
-          drawingPath.getRandom([point.offset.dy, point.offset.dx, 2]);
-      final random3 =
-          drawingPath.getRandom([point.offset.dx, point.offset.dy, 3]);
+      final random1 = drawingPath.getRandom([point.dx, point.dy, 1]);
+      final random2 = drawingPath.getRandom([point.dy, point.dx, 2]);
+      final random3 = drawingPath.getRandom([point.dx, point.dy, 3]);
 
       final paint = Paint()
         ..color = drawingPath.color.withOpacity(0.3)
@@ -539,7 +550,7 @@ final bubbleBrush = BrushData(
           (drawingPath.width / 2) + random1 * (drawingPath.width);
 
       canvas.drawCircle(
-        point.offset + Offset(random2 * 10 - 5, random3 * 10 - 5),
+        point + Offset(random2 * 10 - 5, random3 * 10 - 5),
         bubbleRadius,
         paint,
       );
@@ -554,7 +565,7 @@ final glitterBrush = BrushData(
   densityOffset: 20,
   customPainter: (canvas, size, drawingPath) {
     for (final point in drawingPath.points) {
-      final offset = point.offset;
+      final offset = point;
       final random1 = drawingPath.getRandom([offset.dx, offset.dy, 1]);
       final random2 = drawingPath.getRandom([offset.dy, offset.dx, 2]);
       final random3 = drawingPath.getRandom([offset.dx, offset.dy, 3]);
@@ -567,7 +578,7 @@ final glitterBrush = BrushData(
       final glitterSize = random2 * drawingPath.width / 2;
 
       canvas.drawCircle(
-        point.offset +
+        point +
             Offset(
               random3 * 10 - 5,
               random4 * 10 - 5,
@@ -588,18 +599,17 @@ final rainbowBrush = BrushData(
     if (drawingPath.points.length < 2) return;
 
     final path = Path();
-    path.moveTo(
-        drawingPath.points.first.offset.dx, drawingPath.points.first.offset.dy);
+    path.moveTo(drawingPath.points.first.dx, drawingPath.points.first.dy);
 
     for (int i = 1; i < drawingPath.points.length; i++) {
       final p0 = drawingPath.points[i - 1];
       final p1 = drawingPath.points[i];
 
       path.quadraticBezierTo(
-        p0.offset.dx,
-        p0.offset.dy,
-        (p0.offset.dx + p1.offset.dx) / 2,
-        (p0.offset.dy + p1.offset.dy) / 2,
+        p0.dx,
+        p0.dy,
+        (p0.dx + p1.dx) / 2,
+        (p0.dy + p1.dy) / 2,
       );
     }
 
@@ -642,7 +652,7 @@ final sparkleBrush = BrushData(
       ..style = PaintingStyle.fill;
 
     for (final point in drawingPath.points) {
-      final offset = point.offset;
+      final offset = point;
       final randomSize = drawingPath.getRandom([offset.dx, offset.dy, 1]);
       final randomRotation = drawingPath.getRandom([offset.dy, offset.dx, 2]);
       final randomOpacity = drawingPath.getRandom([offset.dx, offset.dy, 3]);
@@ -652,7 +662,7 @@ final sparkleBrush = BrushData(
       final size = drawingPath.width * (0.5 + randomSize * 0.5);
 
       canvas.save();
-      canvas.translate(point.offset.dx, point.offset.dy);
+      canvas.translate(point.dx, point.dy);
       canvas.rotate(randomRotation * 2 * pi);
 
       final path = Path();
@@ -678,7 +688,7 @@ final leafBrush = BrushData(
   densityOffset: 15.0,
   customPainter: (canvas, size, drawingPath) {
     for (final point in drawingPath.points) {
-      final offset = point.offset;
+      final offset = point;
       final randomSize = drawingPath.getRandom([offset.dx, offset.dy, 1]);
       final randomRotation = drawingPath.getRandom([offset.dy, offset.dx, 2]);
       final randomColorVariation =
@@ -699,7 +709,7 @@ final leafBrush = BrushData(
       final size = drawingPath.width * (0.8 + randomSize * 0.4);
 
       canvas.save();
-      canvas.translate(point.offset.dx, point.offset.dy);
+      canvas.translate(point.dx, point.dy);
       canvas.rotate((randomRotation - 0.5) * pi * 2);
       canvas.skew(
           (randomSkew - 0.5) * 0.2, 0.0); // Subtle skew for natural variation
@@ -732,7 +742,7 @@ final grassBrush = BrushData(
   densityOffset: 8.0,
   customPainter: (canvas, size, drawingPath) {
     for (final point in drawingPath.points) {
-      final offset = point.offset;
+      final offset = point;
       final randomLength = drawingPath.getRandom([offset.dx, offset.dy, 1]);
       final randomAngle = drawingPath.getRandom([offset.dy, offset.dx, 2]);
       final randomCurvature = drawingPath.getRandom([offset.dx, offset.dy, 3]);
@@ -757,12 +767,12 @@ final grassBrush = BrushData(
       final curvature = (randomCurvature - 0.5) * length / 2;
 
       final path = Path();
-      path.moveTo(point.offset.dx, point.offset.dy);
+      path.moveTo(point.dx, point.dy);
       path.quadraticBezierTo(
-        point.offset.dx + curvature * cos(angle),
-        point.offset.dy - length / 2,
-        point.offset.dx + curvature * cos(angle),
-        point.offset.dy - length,
+        point.dx + curvature * cos(angle),
+        point.dy - length / 2,
+        point.dx + curvature * cos(angle),
+        point.dy - length,
       );
 
       canvas.drawPath(path, paint);
@@ -781,12 +791,12 @@ final pixelBrush = BrushData(
       final point = drawingPath.points[i];
       final paint = Paint()..color = drawingPath.color;
 
-      final x = point.offset.dx - point.offset.dx % pixelSize;
-      final y = point.offset.dy - point.offset.dy % pixelSize;
+      final x = point.dx - point.dx % pixelSize;
+      final y = point.dy - point.dy % pixelSize;
 
       if (i <= drawingPath.points.length - 1) {
-        point.offset.calculateDensityOffset(
-          drawingPath.points[i + 1].offset,
+        point.calculateDensityOffset(
+          drawingPath.points[i + 1],
           pixelSize.toDouble(),
           (offset) {
             canvas.drawRect(
@@ -817,11 +827,10 @@ final glowBrush = BrushData(
   densityOffset: 1.0,
   customPainter: (canvas, size, drawingPath) {
     final path = Path();
-    path.moveTo(
-        drawingPath.points.first.offset.dx, drawingPath.points.first.offset.dy);
+    path.moveTo(drawingPath.points.first.dx, drawingPath.points.first.dy);
     for (int i = 1; i < drawingPath.points.length; i++) {
-      final p0 = drawingPath.points[i - 1].offset;
-      final p1 = drawingPath.points[i].offset;
+      final p0 = drawingPath.points[i - 1];
+      final p1 = drawingPath.points[i];
       path.quadraticBezierTo(
         p0.dx,
         p0.dy,
@@ -857,7 +866,7 @@ final mosaicBrush = BrushData(
     for (final point in drawingPath.points) {
       final size = drawingPath.width * 1.5;
       final rect = Rect.fromCenter(
-        center: point.offset,
+        center: point,
         width: size,
         height: size,
       );
@@ -892,7 +901,7 @@ final splatBrush = BrushData(
   densityOffset: 30.0,
   customPainter: (canvas, size, drawingPath) {
     for (final point in drawingPath.points) {
-      final center = point.offset;
+      final center = point;
       final random = [
         drawingPath.getRandom([center.dx, center.dy, 1]),
         drawingPath.getRandom([center.dy, center.dx, 2]),
@@ -941,11 +950,10 @@ final calligraphyBrush = BrushData(
   densityOffset: 2.0,
   customPainter: (canvas, size, drawingPath) {
     final path = Path();
-    path.moveTo(
-        drawingPath.points.first.offset.dx, drawingPath.points.first.offset.dy);
+    path.moveTo(drawingPath.points.first.dx, drawingPath.points.first.dy);
     for (int i = 1; i < drawingPath.points.length; i++) {
-      final p0 = drawingPath.points[i - 1].offset;
-      final p1 = drawingPath.points[i].offset;
+      final p0 = drawingPath.points[i - 1];
+      final p1 = drawingPath.points[i];
       path.quadraticBezierTo(
         p0.dx,
         p0.dy,
@@ -961,8 +969,8 @@ final calligraphyBrush = BrushData(
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round
       ..shader = ui.Gradient.linear(
-        drawingPath.points.first.offset,
-        drawingPath.points.last.offset,
+        drawingPath.points.first,
+        drawingPath.points.last,
         [drawingPath.color.withOpacity(0.5), drawingPath.color],
         [0, 1],
       );
@@ -978,8 +986,8 @@ final electricBrush = BrushData(
   densityOffset: 5.0,
   customPainter: (canvas, size, drawingPath) {
     for (int i = 1; i < drawingPath.points.length; i++) {
-      final start = drawingPath.points[i - 1].offset;
-      final end = drawingPath.points[i].offset;
+      final start = drawingPath.points[i - 1];
+      final end = drawingPath.points[i];
       final random = [
         drawingPath.getRandom([i, start.dx, start.dy, 1]),
         drawingPath.getRandom([i, end.dx, end.dy, 2]),
@@ -1030,7 +1038,7 @@ final furBrush = BrushData(
     final random = Random();
     for (var i = 0; i < drawingPath.points.length; i++) {
       final point = drawingPath.points[i];
-      final offset = point.offset;
+      final offset = point;
       final lengthRandom = drawingPath.getRandom([i, offset.dx, offset.dy, 1]);
       final angleRandom = drawingPath.getRandom([i, offset.dy, offset.dx, 2]);
       final colorRandom = drawingPath.getRandom([i, offset.dx, offset.dy, 3]);
@@ -1040,8 +1048,8 @@ final furBrush = BrushData(
       final colorVariation = (colorRandom - 0.5) * 0.2;
 
       final endPoint = Offset(
-        point.offset.dx + cos(furAngle) * furLength,
-        point.offset.dy + sin(furAngle) * furLength,
+        point.dx + cos(furAngle) * furLength,
+        point.dy + sin(furAngle) * furLength,
       );
 
       final paint = Paint()
@@ -1049,7 +1057,7 @@ final furBrush = BrushData(
         ..strokeWidth = drawingPath.width * 0.1
         ..strokeCap = StrokeCap.round;
 
-      canvas.drawLine(point.offset, endPoint, paint);
+      canvas.drawLine(point, endPoint, paint);
     }
   },
 );
@@ -1061,7 +1069,7 @@ final galaxyBrush = BrushData(
   densityOffset: 10.0,
   customPainter: (canvas, size, drawingPath) {
     for (final point in drawingPath.points) {
-      final center = point.offset;
+      final center = point;
 
       // Create a radial gradient for the galaxy background
       final gradient = RadialGradient(
@@ -1145,8 +1153,8 @@ final fractalBrush = BrushData(
     }
 
     for (int i = 1; i < drawingPath.points.length; i++) {
-      final start = drawingPath.points[i - 1].offset;
-      final end = drawingPath.points[i].offset;
+      final start = drawingPath.points[i - 1];
+      final end = drawingPath.points[i];
       drawFractal(start, end, 4, drawingPath.width);
     }
   },
@@ -1160,7 +1168,7 @@ final fireBrush = BrushData(
   customPainter: (canvas, size, drawingPath) {
     for (var i = 0; i < drawingPath.points.length; i++) {
       final point = drawingPath.points[i];
-      final offset = point.offset;
+      final offset = point;
 
       final randomSize = drawingPath.getRandom([i, offset.dx, offset.dy, 1]);
       final randomAngle = drawingPath.getRandom([i, offset.dy, offset.dx, 2]);
@@ -1173,8 +1181,8 @@ final fireBrush = BrushData(
 
       final paint = Paint()
         ..shader = ui.Gradient.linear(
-          point.offset,
-          point.offset.translate(0, -flameHeight),
+          point,
+          point.translate(0, -flameHeight),
           [
             Colors.red.withOpacity(0.0),
             Colors.orange.withOpacity(randomOpacity * 0.5 + 0.5),
@@ -1185,25 +1193,25 @@ final fireBrush = BrushData(
         ..blendMode = BlendMode.screen;
 
       final path = Path();
-      path.moveTo(point.offset.dx, point.offset.dy);
+      path.moveTo(point.dx, point.dy);
       path.quadraticBezierTo(
-        point.offset.dx - flameWidth / 2,
-        point.offset.dy - flameHeight / 2,
-        point.offset.dx,
-        point.offset.dy - flameHeight,
+        point.dx - flameWidth / 2,
+        point.dy - flameHeight / 2,
+        point.dx,
+        point.dy - flameHeight,
       );
       path.quadraticBezierTo(
-        point.offset.dx + flameWidth / 2,
-        point.offset.dy - flameHeight / 2,
-        point.offset.dx,
-        point.offset.dy,
+        point.dx + flameWidth / 2,
+        point.dy - flameHeight / 2,
+        point.dx,
+        point.dy,
       );
       path.close();
 
       canvas.save();
-      canvas.translate(point.offset.dx, point.offset.dy);
+      canvas.translate(point.dx, point.dy);
       canvas.rotate((randomAngle - 0.5) * pi / 4);
-      canvas.translate(-point.offset.dx, -point.offset.dy);
+      canvas.translate(-point.dx, -point.dy);
       canvas.drawPath(path, paint);
       canvas.restore();
     }
@@ -1219,7 +1227,7 @@ final snowflakeBrush = BrushData(
   customPainter: (canvas, size, drawingPath) {
     for (var i = 0; i < drawingPath.points.length; i++) {
       final point = drawingPath.points[i];
-      final offset = point.offset;
+      final offset = point;
 
       final randomSize = drawingPath.getRandom([i, offset.dx, offset.dy, 1]);
       final randomRotation =
@@ -1234,7 +1242,7 @@ final snowflakeBrush = BrushData(
         ..strokeWidth = size * 0.1;
 
       canvas.save();
-      canvas.translate(point.offset.dx, point.offset.dy);
+      canvas.translate(point.dx, point.dy);
       canvas.rotate(randomRotation * 2 * pi);
 
       final path = Path();
@@ -1275,7 +1283,7 @@ final cloudBrush = BrushData(
   customPainter: (canvas, size, drawingPath) {
     for (var i = 0; i < drawingPath.points.length; i++) {
       final point = drawingPath.points[i];
-      final o = point.offset;
+      final o = point;
 
       final randomSize = drawingPath.getRandom([i, o.dx, o.dy, 1]);
       final randomOffsetX = drawingPath.getRandom([i, o.dy, o.dx, 2]);
@@ -1287,7 +1295,7 @@ final cloudBrush = BrushData(
         ..color = Colors.white.withOpacity(0.5)
         ..style = PaintingStyle.fill;
 
-      final offset = point.offset.translate(
+      final offset = point.translate(
         (randomOffsetX - 0.5) * size * 0.5,
         (randomOffsetY - 0.5) * size * 0.5,
       );
@@ -1321,7 +1329,7 @@ final lightningBrush = BrushData(
   customPainter: (canvas, size, drawingPath) {
     for (var i = 0; i < drawingPath.points.length; i++) {
       final point = drawingPath.points[i];
-      final offset = point.offset;
+      final offset = point;
 
       final randomLength = drawingPath.getRandom([i, offset.dx, offset.dy, 1]);
       final randomAngle = drawingPath.getRandom([i, offset.dy, offset.dx, 2]);
@@ -1339,8 +1347,8 @@ final lightningBrush = BrushData(
         ..strokeCap = StrokeCap.round;
 
       final path = Path();
-      path.moveTo(point.offset.dx, point.offset.dy);
-      var currentPoint = point.offset;
+      path.moveTo(point.dx, point.dy);
+      var currentPoint = point;
       var currentAngle = angle;
       var remainingLength = length;
 
@@ -1372,7 +1380,7 @@ final featherBrush = BrushData(
     final random = Random();
     for (var i = 0; i < drawingPath.points.length; i++) {
       final point = drawingPath.points[i];
-      final offset = point.offset;
+      final offset = point;
 
       final randomSize = drawingPath.getRandom([i, offset.dx, offset.dy, 1]);
       final randomRotation =
@@ -1386,7 +1394,7 @@ final featherBrush = BrushData(
         ..style = PaintingStyle.fill;
 
       canvas.save();
-      canvas.translate(point.offset.dx, point.offset.dy);
+      canvas.translate(point.dx, point.dy);
       canvas.rotate((randomRotation - 0.5) * pi / 4);
       canvas.skew((randomSkew - 0.5) * 0.2, 0.0);
 
@@ -1469,8 +1477,8 @@ final galaxyBrush1 = BrushData(
       for (int i = 0; i < numPoints * 2; i++) {
         final angle = i * pi / numPoints;
         final radius = i.isEven ? outerRadius : innerRadius;
-        final x = point.offset.dx + radius * cos(angle);
-        final y = point.offset.dy + radius * sin(angle);
+        final x = point.dx + radius * cos(angle);
+        final y = point.dy + radius * sin(angle);
         if (i == 0) {
           path.moveTo(x, y);
         } else {
@@ -1482,14 +1490,14 @@ final galaxyBrush1 = BrushData(
 
       // Add small dots to simulate distant stars
       for (int j = 0; j < 5; j++) {
-        final dxRandom = drawingPath.getRandom([i, j, point.offset.dx]);
-        final dyRandom = drawingPath.getRandom([i, j, point.offset.dy]);
+        final dxRandom = drawingPath.getRandom([i, j, point.dx]);
+        final dyRandom = drawingPath.getRandom([i, j, point.dy]);
         final dotSizeRandom = drawingPath.getRandom([i, j, starSize]);
         final colorRandom = drawingPath.getRandom([i, j, -1]);
 
         final offset = Offset(
-          point.offset.dx + (dxRandom - 0.5) * drawingPath.width * 2,
-          point.offset.dy + (dyRandom - 0.5) * drawingPath.width * 2,
+          point.dx + (dxRandom - 0.5) * drawingPath.width * 2,
+          point.dy + (dyRandom - 0.5) * drawingPath.width * 2,
         );
         final dotSize = dotSizeRandom * starSize * 0.2;
         final dotPaint = Paint()
@@ -1511,7 +1519,7 @@ final confettiBrush = BrushData(
     final random = Random();
     for (var i = 0; i < drawingPath.points.length; i++) {
       final point = drawingPath.points[i];
-      final offset = point.offset;
+      final offset = point;
 
       final random1 = drawingPath.getRandom([i, offset.dx, offset.dy, 1]);
       final random2 = drawingPath.getRandom([i, offset.dy, offset.dx, 2]);
@@ -1526,7 +1534,7 @@ final confettiBrush = BrushData(
         ..style = PaintingStyle.fill;
 
       canvas.save();
-      canvas.translate(point.offset.dx, point.offset.dy);
+      canvas.translate(point.dx, point.dy);
       canvas.rotate(rotation);
 
       final rect =
@@ -1546,8 +1554,8 @@ final metallicBrush = BrushData(
   customPainter: (canvas, size, drawingPath) {
     final path = Path();
     path.moveTo(
-      drawingPath.points.first.offset.dx,
-      drawingPath.points.first.offset.dy,
+      drawingPath.points.first.dx,
+      drawingPath.points.first.dy,
     );
 
     for (int i = 1; i < drawingPath.points.length; i++) {
@@ -1555,10 +1563,10 @@ final metallicBrush = BrushData(
       final p1 = drawingPath.points[i];
 
       path.quadraticBezierTo(
-        p0.offset.dx,
-        p0.offset.dy,
-        (p0.offset.dx + p1.offset.dx) / 2,
-        (p0.offset.dy + p1.offset.dy) / 2,
+        p0.dx,
+        p0.dy,
+        (p0.dx + p1.dx) / 2,
+        (p0.dy + p1.dy) / 2,
       );
     }
 
@@ -1589,15 +1597,15 @@ final embroideryBrush = BrushData(
   customPainter: (canvas, size, drawingPath) {
     final path = Path();
     path.moveTo(
-      drawingPath.points.first.offset.dx,
-      drawingPath.points.first.offset.dy,
+      drawingPath.points.first.dx,
+      drawingPath.points.first.dy,
     );
 
     for (int i = 1; i < drawingPath.points.length; i++) {
       final p0 = drawingPath.points[i - 1];
       final p1 = drawingPath.points[i];
 
-      path.lineTo(p1.offset.dx, p1.offset.dy);
+      path.lineTo(p1.dx, p1.dy);
     }
 
     final paint = Paint()
@@ -1611,8 +1619,8 @@ final embroideryBrush = BrushData(
 
     // Add stitching effect
     for (int i = 0; i < drawingPath.points.length - 1; i++) {
-      final p0 = drawingPath.points[i].offset;
-      final p1 = drawingPath.points[i + 1].offset;
+      final p0 = drawingPath.points[i];
+      final p1 = drawingPath.points[i + 1];
 
       final midPoint = Offset(
         (p0.dx + p1.dx) / 2,
@@ -1639,7 +1647,7 @@ final stainedGlassBrush = BrushData(
   customPainter: (canvas, size, drawingPath) {
     for (var i = 0; i < drawingPath.points.length; i++) {
       final point = drawingPath.points[i];
-      final offset = point.offset;
+      final offset = point;
 
       final random1 = drawingPath.getRandom([i, offset.dx, offset.dy, 1]);
       final random2 = drawingPath.getRandom([i, offset.dy, offset.dx, 2]);
@@ -1656,7 +1664,7 @@ final stainedGlassBrush = BrushData(
         ..style = PaintingStyle.fill;
 
       canvas.save();
-      canvas.translate(point.offset.dx, point.offset.dy);
+      canvas.translate(point.dx, point.dy);
       canvas.rotate(rotation);
 
       final size = drawingPath.width * 1.5;
@@ -1717,8 +1725,8 @@ final ribbonBrush = BrushData(
     final shadowPath = Path();
 
     for (int i = 1; i < drawingPath.points.length; i++) {
-      final p0 = drawingPath.points[i - 1].offset;
-      final p1 = drawingPath.points[i].offset;
+      final p0 = drawingPath.points[i - 1];
+      final p1 = drawingPath.points[i];
       final random = drawingPath.getRandom([i, p0.dx, p0.dy, p1.dx, p1.dy, 0]);
 
       final perpendicular = (p1 - p0).dy != 0 || (p1 - p0).dx != 0
@@ -1741,8 +1749,8 @@ final ribbonBrush = BrushData(
     }
 
     for (int i = drawingPath.points.length - 1; i >= 1; i--) {
-      final p0 = drawingPath.points[i].offset;
-      final p1 = drawingPath.points[i - 1].offset;
+      final p0 = drawingPath.points[i];
+      final p1 = drawingPath.points[i - 1];
       final random = drawingPath.getRandom([i, p0.dx, p0.dy, p1.dx, p1.dy, 1]);
 
       final perpendicular = (p1 - p0).dy != 0 || (p1 - p0).dx != 0
@@ -1777,7 +1785,7 @@ final particleFieldBrush = BrushData(
   densityOffset: 10.0,
   customPainter: (canvas, size, drawingPath) {
     for (final point in drawingPath.points) {
-      final center = point.offset;
+      final center = point;
 
       for (int i = 0; i < 50; i++) {
         final random = List.generate(
@@ -1812,12 +1820,11 @@ final waveInterferenceBrush = BrushData(
   densityOffset: 5.0,
   customPainter: (canvas, size, drawingPath) {
     final path = Path();
-    path.moveTo(
-        drawingPath.points.first.offset.dx, drawingPath.points.first.offset.dy);
+    path.moveTo(drawingPath.points.first.dx, drawingPath.points.first.dy);
 
     for (int i = 1; i < drawingPath.points.length; i++) {
-      final p0 = drawingPath.points[i - 1].offset;
-      final p1 = drawingPath.points[i].offset;
+      final p0 = drawingPath.points[i - 1];
+      final p1 = drawingPath.points[i];
       path.quadraticBezierTo(
         p0.dx,
         p0.dy,
@@ -1870,7 +1877,7 @@ final voronoiBrush = BrushData(
     for (var i = 0; i < drawingPath.points.length; i++) {
       final point = drawingPath.points[i];
 
-      final center = point.offset;
+      final center = point;
       final random = List.generate(20, (j) => drawingPath.getRandom([i, j]));
 
       for (int i = 0; i < 10; i++) {
@@ -1886,8 +1893,8 @@ final voronoiBrush = BrushData(
     }
 
     final rect = Rect.fromPoints(
-      drawingPath.points.first.offset,
-      drawingPath.points.last.offset,
+      drawingPath.points.first,
+      drawingPath.points.last,
     ).inflate(drawingPath.width * 2);
 
     for (double y = rect.top; y < rect.bottom; y += 2) {
@@ -1923,8 +1930,8 @@ final chaosTheoryBrush = BrushData(
     if (drawingPath.points.length < 2) return;
 
     final points = <Offset>[];
-    double x = drawingPath.points.first.offset.dx;
-    double y = drawingPath.points.first.offset.dy;
+    double x = drawingPath.points.first.dx;
+    double y = drawingPath.points.first.dy;
 
     final a = 10.0;
     final b = 28.0;
@@ -1954,7 +1961,7 @@ final chaosTheoryBrush = BrushData(
       ..strokeWidth = drawingPath.width * 0.2;
 
     final scale = drawingPath.width * 0.1;
-    final translate = drawingPath.points.last.offset;
+    final translate = drawingPath.points.last;
 
     canvas.save();
     canvas.translate(translate.dx, translate.dy);
@@ -1973,12 +1980,11 @@ final inkBrush = BrushData(
     if (drawingPath.points.length < 2) return;
 
     final mainPath = Path();
-    mainPath.moveTo(
-        drawingPath.points.first.offset.dx, drawingPath.points.first.offset.dy);
+    mainPath.moveTo(drawingPath.points.first.dx, drawingPath.points.first.dy);
 
     for (int i = 1; i < drawingPath.points.length; i++) {
-      final p0 = drawingPath.points[i - 1].offset;
-      final p1 = drawingPath.points[i].offset;
+      final p0 = drawingPath.points[i - 1];
+      final p1 = drawingPath.points[i];
       final mid = (p0 + p1) / 2;
       mainPath.quadraticBezierTo(p0.dx, p0.dy, mid.dx, mid.dy);
     }
@@ -1995,14 +2001,14 @@ final inkBrush = BrushData(
     // Add ink splatters
     for (var i = 0; i < drawingPath.points.length; i++) {
       final point = drawingPath.points[i];
-      final offset = point.offset;
+      final offset = point;
       final random0 = drawingPath.getRandom([i, offset.dx, offset.dy, 0]);
       final random1 = drawingPath.getRandom([i, offset.dx, offset.dy, 1]);
       final random2 = drawingPath.getRandom([i, offset.dy, offset.dx, 2]);
       if (random0 < 0.1) {
         // 10% chance of splatter at each point
         final splatterPath = Path();
-        final splatterCenter = point.offset;
+        final splatterCenter = point;
         for (int i = 0; i < 5; i++) {
           final angle = random1 * 2 * pi;
           final distance = random2 * drawingPath.width * 2;
@@ -2034,8 +2040,8 @@ final fireworksBrush = BrushData(
   customPainter: (canvas, size, drawingPath) {
     for (var i = 0; i < drawingPath.points.length; i++) {
       final point = drawingPath.points[i];
-      final offset = point.offset;
-      final center = point.offset;
+      final offset = point;
+      final center = point;
       final random = List.generate(
         100,
         (j) => drawingPath.getRandom([i, offset.dx, offset.dy, j]),
@@ -2077,12 +2083,11 @@ final glassBrush = BrushData(
     if (drawingPath.points.length < 2) return;
 
     final path = Path();
-    path.moveTo(
-        drawingPath.points.first.offset.dx, drawingPath.points.first.offset.dy);
+    path.moveTo(drawingPath.points.first.dx, drawingPath.points.first.dy);
 
     for (int i = 1; i < drawingPath.points.length; i++) {
-      final p0 = drawingPath.points[i - 1].offset;
-      final p1 = drawingPath.points[i].offset;
+      final p0 = drawingPath.points[i - 1];
+      final p1 = drawingPath.points[i];
       final mid = (p0 + p1) / 2;
       path.quadraticBezierTo(p0.dx, p0.dy, mid.dx, mid.dy);
     }
@@ -2098,7 +2103,7 @@ final glassBrush = BrushData(
 
     // Add glass reflections
     for (int i = 1; i < drawingPath.points.length; i += 2) {
-      final point = drawingPath.points[i].offset;
+      final point = drawingPath.points[i];
       final random = List.generate(
         6,
         (j) => drawingPath.getRandom([i, point.dx, point.dy, j]),
@@ -2154,13 +2159,13 @@ final embossBrush = BrushData(
   customPainter: (canvas, size, drawingPath) {
     final path = Path();
     path.moveTo(
-      drawingPath.points.first.offset.dx,
-      drawingPath.points.first.offset.dy,
+      drawingPath.points.first.dx,
+      drawingPath.points.first.dy,
     );
 
     for (int i = 1; i < drawingPath.points.length; i++) {
-      final p0 = drawingPath.points[i - 1].offset;
-      final p1 = drawingPath.points[i].offset;
+      final p0 = drawingPath.points[i - 1];
+      final p1 = drawingPath.points[i];
       path.quadraticBezierTo(
         p0.dx,
         p0.dy,

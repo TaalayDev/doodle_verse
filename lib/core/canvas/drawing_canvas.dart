@@ -31,9 +31,8 @@ class DrawingCanvas {
     if (drawingPath.points.length < 2) {
       return;
     }
-    if (drawingPath.image case var image?) {
-      canvas.drawImage(image, Offset.zero, paint);
-    } else if (drawingPath.brush.brush != null) {
+
+    if (drawingPath.brush.brush != null) {
       drawTexturedPath(canvas, path, paint, drawingPath);
     } else {
       drawSimplePath(canvas, drawingPath, paint);
@@ -43,8 +42,8 @@ class DrawingCanvas {
   void drawSimplePath(Canvas canvas, DrawingPath drawingPath, Paint paint) {
     final path = Path();
     path.moveTo(
-      drawingPath.points.first.offset.dx,
-      drawingPath.points.first.offset.dy,
+      drawingPath.points.first.dx,
+      drawingPath.points.first.dy,
     );
 
     for (int i = 1; i < drawingPath.points.length; i++) {
@@ -52,10 +51,10 @@ class DrawingCanvas {
       final p1 = drawingPath.points[i];
 
       path.quadraticBezierTo(
-        p0.offset.dx,
-        p0.offset.dy,
-        (p0.offset.dx + p1.offset.dx) / 2,
-        (p0.offset.dy + p1.offset.dy) / 2,
+        p0.dx,
+        p0.dy,
+        (p0.dx + p1.dx) / 2,
+        (p0.dy + p1.dy) / 2,
       );
     }
 
@@ -70,8 +69,8 @@ class DrawingCanvas {
   ) {
     final path = Path();
     path.moveTo(
-      drawingPath.points.first.offset.dx,
-      drawingPath.points.first.offset.dy,
+      drawingPath.points.first.dx,
+      drawingPath.points.first.dy,
     );
 
     for (int i = 1; i < drawingPath.points.length; i++) {
@@ -79,10 +78,10 @@ class DrawingCanvas {
       final p1 = drawingPath.points[i];
 
       path.quadraticBezierTo(
-        p0.offset.dx,
-        p0.offset.dy,
-        (p0.offset.dx + p1.offset.dx) / 2,
-        (p0.offset.dy + p1.offset.dy) / 2,
+        p0.dx,
+        p0.dy,
+        (p0.dx + p1.dx) / 2,
+        (p0.dy + p1.dy) / 2,
       );
     }
 

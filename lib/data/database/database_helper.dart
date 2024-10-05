@@ -212,8 +212,8 @@ class DatabaseHelper {
         'layerId': layerId,
         'points': jsonEncode(state.drawingPath.points
             .map((p) => {
-                  'x': p.offset.dx,
-                  'y': p.offset.dy,
+                  'x': p.dx,
+                  'y': p.dy,
                 })
             .toList()),
         'brush': state.drawingPath.brush.id,
