@@ -615,12 +615,33 @@ class _DrawBodyState extends State<DrawBody> {
     _drawingController.undo();
 
     final currentLayer = widget.project.layers.last;
+    _projectNotifier.updateLayers(
+      widget.project.layers.map((layer) {
+        if (layer.id == currentLayer.id) {
+          return layer.copyWith(states: List.of(layer.states)..removeLast());
+        }
+        return layer;
+      }).toList(),
+    );
   }
 
   void _redo() {
-    _drawingController.redo();
+    final drawingPath = _drawingController.redo();
 
     final currentLayer = widget.project.layers.last;
+    _projectNotifier.updateLayers(
+      widget.project.layers.map((layer) {
+        if (layer.id == currentLayer.id) {
+          return layer.copyWith(
+            states: [
+              ...layer.states,
+              LayerStateModel(id: 0, drawingPath: drawingPath!),
+            ],
+          );
+        }
+        return layer;
+      }).toList(),
+    );
   }
 
   @override

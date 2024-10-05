@@ -1,12 +1,10 @@
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'dart:math';
 
 import '../../data.dart';
 import '../../data/models/drawing_path.dart';
 import 'dirty_region_tracker.dart';
-import 'drawing_canvas.dart';
 
 class DrawingController extends ChangeNotifier {
   DrawingController(
@@ -75,13 +73,15 @@ class DrawingController extends ChangeNotifier {
     }
   }
 
-  void redo() {
+  DrawingPath? redo() {
     if (_redoStack.isNotEmpty) {
       final restoredPath = _redoStack.removeLast();
       paths.add(restoredPath);
       _updateTilesForPath(restoredPath);
       notifyListeners();
+      return restoredPath;
     }
+    return null;
   }
 
   void clear() {

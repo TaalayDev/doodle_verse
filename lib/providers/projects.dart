@@ -48,33 +48,27 @@ class Project extends _$Project {
 
   @override
   Future<ProjectModel> build(int projectId) async {
-    try {
-      final dbProject = await repo.fetchProject(projectId);
+    final dbProject = await repo.fetchProject(projectId);
 
-      if (dbProject == null) {
-        final newProject = ProjectModel(
-          id: projectId,
-          name: 'New Project',
-          layers: [
-            const LayerModel(
-              id: 1,
-              name: 'Background',
-              isBackground: true,
-            ),
-          ],
-          createdAt: DateTime.now().millisecondsSinceEpoch,
-          lastModified: DateTime.now().millisecondsSinceEpoch,
-        );
-        await repo.createProject(newProject);
-        return newProject;
-      }
-
-      return dbProject;
-    } catch (e, s) {
-      print(e);
-      print(s);
-      rethrow;
+    if (dbProject == null) {
+      final newProject = ProjectModel(
+        id: projectId,
+        name: 'New Project',
+        layers: [
+          const LayerModel(
+            id: 1,
+            name: 'Background',
+            isBackground: true,
+          ),
+        ],
+        createdAt: DateTime.now().millisecondsSinceEpoch,
+        lastModified: DateTime.now().millisecondsSinceEpoch,
+      );
+      await repo.createProject(newProject);
+      return newProject;
     }
+
+    return dbProject;
   }
 
   Future<void> saveProject(ProjectModel model) async {
