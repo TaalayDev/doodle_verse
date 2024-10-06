@@ -11,7 +11,7 @@ abstract class ProjectRepo {
   Future<void> updateProject(ProjectModel project);
   Future<void> renameProject(int projectId, String name);
   Future<void> deleteProject(int projectId);
-  Future<void> createLayer(int projectId, LayerModel layer);
+  Future<int> createLayer(int projectId, LayerModel layer);
   Future<void> updateLayer(int projectId, LayerModel layer);
   Future<void> deleteLayer(int projectId, int layerId);
 }
@@ -52,9 +52,9 @@ class ProjectLocalRepo extends ProjectRepo {
   }
 
   @override
-  Future<void> createLayer(int projectId, LayerModel layer) async {
+  Future<int> createLayer(int projectId, LayerModel layer) async {
     return _addTask(() async {
-      await db.insertLayer(projectId, layer);
+      return db.insertLayer(projectId, layer);
     });
   }
 

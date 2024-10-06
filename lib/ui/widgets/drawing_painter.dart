@@ -1,8 +1,5 @@
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
-import 'package:flutter/painting.dart';
-import 'package:flutter/rendering.dart';
-import 'package:flutter/widgets.dart';
 
 import '../../core/canvas/drawing_canvas.dart';
 import '../../core/canvas/drawing_controller.dart';
@@ -13,16 +10,15 @@ class DrawingPainter extends CustomPainter {
   ) : super(repaint: controller);
 
   final DrawingController controller;
-  final DrawingCanvas _drawingCanvas = DrawingCanvas();
+  DrawingCanvas get _drawingCanvas => controller.drawingCanvas;
 
   @override
   void paint(Canvas canvas, Size size) {
     canvas.saveLayer(Offset.zero & size, Paint());
     final dirtyRegion = controller.getDirtyRegion();
 
-    if (controller.cachedImage == null ||
-        controller.paths.length != controller.lastPathsLength) {
-      _renderPathsToImage(size, null);
+    if (controller.cachedImage == null || controller.isDirty) {
+      _renderCacheImage(size, null);
     }
 
     if (controller.cachedImage != null) {
@@ -34,34 +30,8 @@ class DrawingPainter extends CustomPainter {
     controller.clearDirtyRegions();
   }
 
-  void _renderPathsToImage(Size size, Rect? region) async {
-    final recorder = ui.PictureRecorder();
-    final canvas = Canvas(recorder);
-    final width = region?.width ?? size.width;
-    final height = region?.height ?? size.height;
-    canvas.saveLayer(
-      Rect.fromLTWH(0, 0, width, height),
-      Paint()..isAntiAlias = true,
-    );
-
-    if (region != null) {
-      canvas.clipRect(region);
-    }
-
-    for (var path in controller.paths) {
-      _drawingCanvas.drawPath(canvas, size, path);
-    }
-
-    canvas.restore();
-
-    final picture = recorder.endRecording();
-    final image = picture.toImageSync(
-      width.toInt(),
-      height.toInt(),
-    );
-
-    controller.cachedImage = image;
-    controller.lastPathsLength = controller.paths.length;
+  void _renderCacheImage(Size size, Rect? region) async {
+    controller.updateLayerCache(size, region);
   }
 
   void _renderDirtyRegion(

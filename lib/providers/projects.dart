@@ -155,4 +155,67 @@ class Project extends _$Project {
       }
     }
   }
+
+  // Layer methods
+  void setActiveLayerByIndex(int layerId) {
+    final project = state.valueOrNull;
+    if (project != null) {
+      // TODO: Implement setActiveLayerByIndex
+    }
+  }
+
+  void setLayerVisibility(int layerId, bool isVisible) {
+    final project = state.valueOrNull;
+    if (project != null) {
+      final updatedLayers = project.layers.map((layer) {
+        if (layer.id == layerId) {
+          return layer.copyWith(isVisible: isVisible);
+        }
+        return layer;
+      }).toList();
+      final updatedProject = project.copyWith(layers: updatedLayers);
+      updateProject(updatedProject);
+    }
+  }
+
+  Future<LayerModel> addLayer(LayerModel layer) async {
+    final id = await repo.createLayer(projectId, layer);
+
+    final project = await future;
+
+    final updatedLayers = List<LayerModel>.from(project.layers)
+      ..add(layer.copyWith(id: id));
+    final updatedProject = project.copyWith(layers: updatedLayers);
+
+    state = AsyncData(updatedProject);
+
+    return layer.copyWith(id: id);
+  }
+
+  void updateLayer(LayerModel layer) {
+    repo.updateLayer(projectId, layer);
+
+    final project = state.valueOrNull;
+    if (project == null) return;
+
+    final updatedLayers = project.layers.map((l) {
+      if (l.id == layer.id) {
+        return layer;
+      }
+      return l;
+    }).toList();
+    final updatedProject = project.copyWith(layers: updatedLayers);
+    state = AsyncData(updatedProject);
+  }
+
+  void deleteLayer(int layerId) {
+    repo.deleteLayer(projectId, layerId);
+
+    final project = state.valueOrNull;
+    if (project == null) return;
+
+    final updatedLayers = project.layers.where((l) => l.id != layerId).toList();
+    final updatedProject = project.copyWith(layers: updatedLayers);
+    state = AsyncData(updatedProject);
+  }
 }

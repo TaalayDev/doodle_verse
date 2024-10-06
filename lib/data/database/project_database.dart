@@ -316,8 +316,8 @@ class AppDatabase extends _$AppDatabase {
       ..write(ProjectsTableCompanion(name: Value(name))));
   }
 
-  Future<void> insertLayer(int projectId, LayerModel layer) async {
-    await into(layersTable)
+  Future<int> insertLayer(int projectId, LayerModel layer) async {
+    return into(layersTable)
         .insert(LayersTableCompanion(
       // id will be auto-incremented
       projectId: Value(projectId),
@@ -348,6 +348,8 @@ class AppDatabase extends _$AppDatabase {
           width: Value(drawingPath.width),
         ));
       }
+
+      return layerId;
     });
   }
 

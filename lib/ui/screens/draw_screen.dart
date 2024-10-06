@@ -14,9 +14,12 @@ import '../../data.dart';
 import '../../core.dart';
 import '../widgets/brush_settings_bottom_sheet.dart';
 import '../widgets/color_picker_bottom_sheet.dart';
-import '../widgets.dart';
+import '../widgets/color_palette_panel.dart';
 import '../widgets/shortcut_wrapper.dart';
 import '../widgets/drawing_painter.dart';
+import '../widgets/layers_panel.dart';
+import '../widgets/tool_menu.dart';
+import '../widgets.dart';
 
 class DrawScreen extends HookConsumerWidget {
   const DrawScreen({
@@ -67,7 +70,6 @@ class _DrawBodyState extends State<DrawBody> {
   Color _currentColor = const Color(0xFF333333);
   double _brushSize = 4.0;
 
-  // Variables for zoom and pan
   double _scale = 1.0;
   Offset _offset = Offset.zero;
   bool _isScaling = false;
@@ -82,23 +84,7 @@ class _DrawBodyState extends State<DrawBody> {
   @override
   void initState() {
     super.initState();
-    _drawingController = DrawingController(context);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadProject();
-    });
-  }
-
-  void _loadProject() {
-    for (final layer in widget.project.layers) {
-      _loadLayerStates(layer);
-    }
-  }
-
-  void _loadLayerStates(LayerModel layer) async {
-    _drawingController.loadStates(
-      layer.states.map((state) => state.drawingPath).toList(),
-      [],
-    );
+    _drawingController = DrawingController(context, project: widget.project);
   }
 
   Future<ui.Image> _capture() async {
@@ -123,7 +109,7 @@ class _DrawBodyState extends State<DrawBody> {
     }
   }
 
-  late final FocusNode focusNode = FocusNode();
+  final focusNode = FocusNode();
 
   Future<void> _saveAsImage() async {
     final renderObject =
@@ -147,6 +133,8 @@ class _DrawBodyState extends State<DrawBody> {
 
   @override
   Widget build(BuildContext context) {
+    final isSmallScreen = MediaQuery.sizeOf(context).width <= 600;
+
     return ShortcutsWrapper(
       onUndo: _undo,
       onRedo: _redo,
@@ -192,222 +180,322 @@ class _DrawBodyState extends State<DrawBody> {
             ),
           ],
         ),
-        body: Stack(
+        body: Row(
           children: [
-            // Drawing Canvas
-            Center(
-              child: SizedBox(
-                width: _calculateSize(context),
-                height: _calculateSize(context),
-                child: GestureDetector(
-                  onScaleStart: _onScaleStart,
-                  onScaleUpdate: _onScaleUpdate,
-                  onScaleEnd: _onScaleEnd,
-                  child: Transform(
-                    transform: Matrix4.identity()
-                      ..translate(_offset.dx, _offset.dy)
-                      ..scale(_scale),
-                    child: RepaintBoundary(
-                      key: _canvasKey,
-                      child: ColoredBox(
-                        color: Colors.white,
-                        child: CustomPaint(
-                          painter: DrawingPainter(_drawingController),
-                          size: Size.infinite,
-                        ),
-                      ),
-                    ),
-                  ),
+            if (!isSmallScreen)
+              Container(
+                color: Colors.grey[100],
+                width: 60,
+                child: ToolMenu(
+                  currentTool: _brush.id,
+                  onSelectTool: (value) {
+                    if (value == 0) {
+                      _showBrushPicker();
+                    }
+                  },
+                  onColorPicker: () {
+                    _showColorPicker();
+                  },
+                  currentColor: _currentColor,
                 ),
               ),
-            ),
-            // Zoom Controls
-            Positioned(
-              right: 10,
-              bottom: 20,
+            Expanded(
               child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(30),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.2),
-                      blurRadius: 2,
-                      spreadRadius: 1,
-                    ),
-                  ],
-                ),
-                child: Column(
+                clipBehavior: Clip.antiAlias,
+                decoration: const BoxDecoration(),
+                child: Stack(
                   children: [
-                    Container(
-                      decoration: const BoxDecoration(
-                        borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(30),
-                          topRight: Radius.circular(30),
-                        ),
-                      ),
-                      child: MaterialInkWell(
-                        padding: const EdgeInsets.all(10),
-                        borderRadius: const BorderRadius.only(
-                          topLeft: Radius.circular(30),
-                          topRight: Radius.circular(30),
-                        ),
-                        onTap: _zoomIn,
-                        child: const Icon(Feather.zoom_in, size: 28),
-                      ),
-                    ),
-                    const SizedBox(
-                      width: 50,
-                      child: Divider(),
-                    ),
-                    Container(
-                      decoration: const BoxDecoration(
-                        borderRadius: BorderRadius.only(
-                          bottomLeft: Radius.circular(30),
-                          bottomRight: Radius.circular(30),
-                        ),
-                      ),
-                      child: MaterialInkWell(
-                        padding: const EdgeInsets.all(10),
-                        borderRadius: const BorderRadius.only(
-                          bottomLeft: Radius.circular(30),
-                          bottomRight: Radius.circular(30),
-                        ),
-                        onTap: _zoomOut,
-                        child: const Icon(Feather.zoom_out, size: 28),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-        bottomNavigationBar: BottomAppBar(
-          height: 60,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              MenuButton(
-                onPressed: _showColorPicker,
-                child: Container(
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.fromBorderSide(
-                      BorderSide(color: Colors.grey),
-                    ),
-                  ),
-                  width: 24,
-                  height: 24,
-                  child: Center(
-                    child: Icon(
-                      Icons.circle,
-                      size: 22,
-                      color: _currentColor,
-                    ),
-                  ),
-                ),
-              ),
-              MenuButton(
-                child: Icon(
-                  Ionicons.brush_outline,
-                  size: 28,
-                  color: _brush.id != widget.tools.pencil.id &&
-                          _brush.id != widget.tools.eraser.id
-                      ? Theme.of(context).primaryColor
-                      : null,
-                ),
-                onPressed: () async {
-                  _showBrushPicker();
-                },
-              ),
-              MenuButton(
-                child: Icon(
-                  Fontisto.eraser,
-                  size: 26,
-                  color: _brush.id == widget.tools.eraser.id
-                      ? Theme.of(context).primaryColor
-                      : null,
-                ),
-                onPressed: () {
-                  _setBrush(widget.tools.eraser);
-                },
-              ),
-              MenuButton(
-                child: const Icon(
-                  Feather.sliders,
-                ),
-                onPressed: () {
-                  showBrushSettingsBottomSheet(
-                    context: context,
-                    brushSize: _brushSize,
-                    onBrushSizeChanged: (value) {
-                      setState(() {
-                        _brushSize = value;
-                      });
-                    },
-                  );
-                },
-              ),
-              MenuButton(
-                child: const Icon(
-                  Feather.square,
-                  size: 26,
-                ),
-                onPressed: () {
-                  showModalBottomSheet(
-                    context: context,
-                    builder: (context) {
-                      return Container(
-                        padding: const EdgeInsets.all(20),
-                        child: GridView.count(
-                          crossAxisCount: 4,
-                          crossAxisSpacing: 10,
-                          mainAxisSpacing: 10,
-                          shrinkWrap: true,
-                          children: [
-                            for (var figure in widget.tools.figures)
-                              MaterialInkWell(
-                                onTap: () {
-                                  _setBrush(figure);
-                                  Navigator.of(context).pop();
-                                },
-                                padding: const EdgeInsets.all(10),
-                                borderRadius: BorderRadius.circular(30),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(
-                                      _getBrushIcon(figure),
-                                      size: 26,
-                                      color: _brush.id == figure.id
-                                          ? Theme.of(context).primaryColor
-                                          : null,
-                                    ),
-                                    const SizedBox(height: 5),
-                                    FittedBox(
-                                      child: Text(
-                                        figure.name,
-                                        style: TextStyle(
-                                          color: _brush.id == figure.id
-                                              ? Theme.of(context).primaryColor
-                                              : null,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
+                    // Drawing Canvas
+                    Center(
+                      child: SizedBox(
+                        width: _calculateSize(context),
+                        height: _calculateSize(context),
+                        child: GestureDetector(
+                          onScaleStart: _onScaleStart,
+                          onScaleUpdate: _onScaleUpdate,
+                          onScaleEnd: _onScaleEnd,
+                          child: Transform(
+                            transform: Matrix4.identity()
+                              ..translate(_offset.dx, _offset.dy)
+                              ..scale(_scale),
+                            child: RepaintBoundary(
+                              key: _canvasKey,
+                              child: ColoredBox(
+                                color: Colors.white,
+                                child: CustomPaint(
+                                  painter: DrawingPainter(_drawingController),
+                                  size: Size.infinite,
                                 ),
                               ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    // Zoom Controls
+                    Positioned(
+                      right: 10,
+                      bottom: 20,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(30),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.2),
+                              blurRadius: 2,
+                              spreadRadius: 1,
+                            ),
                           ],
                         ),
-                      );
-                    },
-                  );
-                },
+                        child: Column(
+                          children: [
+                            Container(
+                              decoration: const BoxDecoration(
+                                borderRadius: BorderRadius.only(
+                                  topLeft: Radius.circular(30),
+                                  topRight: Radius.circular(30),
+                                ),
+                              ),
+                              child: MaterialInkWell(
+                                padding: const EdgeInsets.all(10),
+                                borderRadius: const BorderRadius.only(
+                                  topLeft: Radius.circular(30),
+                                  topRight: Radius.circular(30),
+                                ),
+                                onTap: _zoomIn,
+                                child: const Icon(Feather.zoom_in, size: 28),
+                              ),
+                            ),
+                            const SizedBox(
+                              width: 50,
+                              child: Divider(),
+                            ),
+                            Container(
+                              decoration: const BoxDecoration(
+                                borderRadius: BorderRadius.only(
+                                  bottomLeft: Radius.circular(30),
+                                  bottomRight: Radius.circular(30),
+                                ),
+                              ),
+                              child: MaterialInkWell(
+                                padding: const EdgeInsets.all(10),
+                                borderRadius: const BorderRadius.only(
+                                  bottomLeft: Radius.circular(30),
+                                  bottomRight: Radius.circular(30),
+                                ),
+                                onTap: _zoomOut,
+                                child: const Icon(Feather.zoom_out, size: 28),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ],
-          ),
+            ),
+            if (!isSmallScreen)
+              Container(
+                color: Colors.grey[100],
+                width: 250,
+                child: Column(
+                  children: [
+                    Expanded(
+                      child: LayersPanel(
+                        layers: widget.project.layers,
+                        activeLayerIndex: _drawingController.currentLayerIndex,
+                        onLayerSelected: (index) {
+                          _drawingController.setActiveLayer(index);
+                          _projectNotifier.setActiveLayerByIndex(index);
+                          setState(() {});
+                        },
+                        onLayerVisibilityChanged: (index) {
+                          _drawingController.setLayerVisibility(
+                            index,
+                            !widget.project.layers[index].isVisible,
+                          );
+                          _projectNotifier.setLayerVisibility(
+                            widget.project.layers[index].id,
+                            !widget.project.layers[index].isVisible,
+                          );
+                        },
+                        onLayerAdded: (name) {
+                          _projectNotifier
+                              .addLayer(
+                                LayerModel(
+                                  id: 0,
+                                  name: name,
+                                  isVisible: true,
+                                  states: [],
+                                ),
+                              )
+                              .then(
+                                (layer) => _drawingController.addLayer(layer),
+                              );
+                        },
+                        onLayerDeleted: (index) {
+                          _projectNotifier.deleteLayer(
+                            widget.project.layers[index].id,
+                          );
+                          _drawingController.deleteLayer(index);
+                        },
+                        onLayerLockedChanged: (index) {},
+                        onLayerNameChanged: (index, name) {
+                          _projectNotifier.updateLayer(
+                            widget.project.layers[index].copyWith(name: name),
+                          );
+                        },
+                        onLayerReordered: (oldIndex, newIndex) {},
+                        onLayerOpacityChanged: (index, opacity) {},
+                      ),
+                    ),
+                    const Divider(),
+                    Expanded(
+                      child: ColorPalettePanel(
+                        currentColor: _currentColor,
+                        onColorSelected: (color) {
+                          setState(() {
+                            _currentColor = color;
+                          });
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+          ],
         ),
+        bottomNavigationBar: isSmallScreen
+            ? BottomAppBar(
+                height: 60,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    MenuButton(
+                      onPressed: _showColorPicker,
+                      child: Container(
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.fromBorderSide(
+                            BorderSide(color: Colors.grey),
+                          ),
+                        ),
+                        width: 24,
+                        height: 24,
+                        child: Center(
+                          child: Icon(
+                            Icons.circle,
+                            size: 22,
+                            color: _currentColor,
+                          ),
+                        ),
+                      ),
+                    ),
+                    MenuButton(
+                      child: Icon(
+                        Ionicons.brush_outline,
+                        size: 28,
+                        color: _brush.id != widget.tools.pencil.id &&
+                                _brush.id != widget.tools.eraser.id
+                            ? Theme.of(context).primaryColor
+                            : null,
+                      ),
+                      onPressed: () async {
+                        _showBrushPicker();
+                      },
+                    ),
+                    MenuButton(
+                      child: Icon(
+                        Fontisto.eraser,
+                        size: 26,
+                        color: _brush.id == widget.tools.eraser.id
+                            ? Theme.of(context).primaryColor
+                            : null,
+                      ),
+                      onPressed: () {
+                        _setBrush(widget.tools.eraser);
+                      },
+                    ),
+                    MenuButton(
+                      child: const Icon(
+                        Feather.sliders,
+                      ),
+                      onPressed: () {
+                        showBrushSettingsBottomSheet(
+                          context: context,
+                          brushSize: _brushSize,
+                          onBrushSizeChanged: (value) {
+                            setState(() {
+                              _brushSize = value;
+                            });
+                          },
+                        );
+                      },
+                    ),
+                    MenuButton(
+                      child: const Icon(
+                        Feather.square,
+                        size: 26,
+                      ),
+                      onPressed: () {
+                        showModalBottomSheet(
+                          context: context,
+                          builder: (context) {
+                            return Container(
+                              padding: const EdgeInsets.all(20),
+                              child: GridView.count(
+                                crossAxisCount: 4,
+                                crossAxisSpacing: 10,
+                                mainAxisSpacing: 10,
+                                shrinkWrap: true,
+                                children: [
+                                  for (var figure in widget.tools.figures)
+                                    MaterialInkWell(
+                                      onTap: () {
+                                        _setBrush(figure);
+                                        Navigator.of(context).pop();
+                                      },
+                                      padding: const EdgeInsets.all(10),
+                                      borderRadius: BorderRadius.circular(30),
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Icon(
+                                            _getBrushIcon(figure),
+                                            size: 26,
+                                            color: _brush.id == figure.id
+                                                ? Theme.of(context).primaryColor
+                                                : null,
+                                          ),
+                                          const SizedBox(height: 5),
+                                          FittedBox(
+                                            child: Text(
+                                              figure.name,
+                                              style: TextStyle(
+                                                color: _brush.id == figure.id
+                                                    ? Theme.of(context)
+                                                        .primaryColor
+                                                    : null,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              )
+            : null,
       ),
     );
   }
@@ -554,7 +642,12 @@ class _DrawBodyState extends State<DrawBody> {
       _drawingController.endPath();
 
       if (state != null) {
-        _projectNotifier.addNewState(widget.project.layers.last.id, state).then(
+        _projectNotifier
+            .addNewState(
+              _drawingController.currentLayer.id,
+              state,
+            )
+            .then(
               (_) => _saveProjectThumbnail(),
             );
       }
@@ -594,7 +687,7 @@ class _DrawBodyState extends State<DrawBody> {
   void _undo() {
     _drawingController.undo();
 
-    final currentLayer = widget.project.layers.last;
+    final currentLayer = _drawingController.currentLayer;
     _projectNotifier.updateLayers(
       widget.project.layers.map((layer) {
         if (layer.id == currentLayer.id) {
@@ -607,21 +700,6 @@ class _DrawBodyState extends State<DrawBody> {
 
   void _redo() {
     final drawingPath = _drawingController.redo();
-    if (drawingPath == null) return;
-    final currentLayer = widget.project.layers.last;
-    _projectNotifier.updateLayers(
-      widget.project.layers.map((layer) {
-        if (layer.id == currentLayer.id) {
-          return layer.copyWith(
-            states: [
-              ...layer.states,
-              LayerStateModel(id: 0, drawingPath: drawingPath),
-            ],
-          );
-        }
-        return layer;
-      }).toList(),
-    );
   }
 
   @override
