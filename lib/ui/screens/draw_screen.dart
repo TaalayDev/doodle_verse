@@ -165,7 +165,7 @@ class _DrawBodyState extends State<DrawBody> {
               MenuButton(
                 onPressed: _undo,
                 child: Icon(
-                  Feather.rotate_ccw,
+                  Icons.undo,
                   color: !_drawingController.canUndo ? Colors.grey : null,
                 ),
               ),
@@ -173,7 +173,7 @@ class _DrawBodyState extends State<DrawBody> {
               MenuButton(
                 onPressed: _redo,
                 child: Icon(
-                  Feather.rotate_cw,
+                  Icons.redo,
                   color: !_drawingController.canRedo ? Colors.grey : null,
                 ),
               ),
@@ -211,15 +211,9 @@ class _DrawBodyState extends State<DrawBody> {
                       key: _canvasKey,
                       child: ColoredBox(
                         color: Colors.white,
-                        child: Stack(
-                          children: [
-                            Positioned.fill(
-                              child: CustomPaint(
-                                painter: DrawingPainter(_drawingController),
-                                size: Size.infinite,
-                              ),
-                            ),
-                          ],
+                        child: CustomPaint(
+                          painter: DrawingPainter(_drawingController),
+                          size: Size.infinite,
                         ),
                       ),
                     ),

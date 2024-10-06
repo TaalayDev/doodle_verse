@@ -45,14 +45,14 @@ class AboutScreen extends StatelessWidget {
                   _buildInfoSection(
                     context,
                     Icons.cloud_upload,
-                    'Cloud Sync',
+                    'Cloud Sync (in progress)',
                     'Your creations are automatically saved and synced across devices.',
                   ),
                   const SizedBox(height: 24),
                   _buildInfoSection(
                     context,
                     Icons.group,
-                    'Community',
+                    'Community (in progress)',
                     'Share your art and get inspired by others in the DoodleVerse community.',
                   ),
                   const SizedBox(height: 32),

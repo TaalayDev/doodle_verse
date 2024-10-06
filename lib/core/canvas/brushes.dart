@@ -213,13 +213,13 @@ Future<BrushData> get marker async => BrushData(
       name: 'marker',
       stroke: 'marker_stroke',
       isNew: true,
-      opacityDiff: 0.3,
+      opacityDiff: 0.7,
       strokeCap: ui.StrokeCap.square,
       strokeJoin: ui.StrokeJoin.bevel,
       isLocked: true,
       densityOffset: 1.0,
       useBrushWidthDensity: false,
-      brush: await _loadUIImage(Assets.images.stampMarker),
+      brush: await _loadUIImage(Assets.images.brush2),
     );
 
 final watercolor = BrushData(

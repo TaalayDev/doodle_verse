@@ -25,12 +25,12 @@ class AppTheme {
       case ThemeType.lightOrange:
         return AppTheme(isDark: false)
           ..type = type
-          ..primaryColor = Colors.deepPurple;
+          ..primaryColor = Colors.teal;
 
       case ThemeType.darkOrange:
         return AppTheme(isDark: true)
           ..type = type
-          ..primaryColor = Colors.deepPurple;
+          ..primaryColor = Colors.teal;
     }
   }
 

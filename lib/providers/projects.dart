@@ -18,14 +18,8 @@ class Projects extends _$Projects {
 
   @override
   Stream<List<ProjectModel>> build() {
-    try {
-      final dbProjects = repo.fetchProjects();
-      return dbProjects;
-    } catch (e, s) {
-      print(e);
-      print(s);
-      rethrow;
-    }
+    final dbProjects = repo.fetchProjects();
+    return dbProjects;
   }
 
   Future<int> addProject(ProjectModel project) async {
@@ -39,6 +33,14 @@ class Projects extends _$Projects {
       }
       return p;
     }).toList());
+  }
+
+  Future<void> deleteProject(int projectId) async {
+    await repo.deleteProject(projectId);
+  }
+
+  void updateProjectName(int projectId, String name) {
+    repo.renameProject(projectId, name);
   }
 }
 

@@ -24,7 +24,7 @@ class DrawingCanvas {
       ..blendMode = drawingPath.brush.blendMode
       ..colorFilter = drawingPath.brush.brush != null
           ? ColorFilter.mode(
-              drawingPath.color,
+              color,
               BlendMode.srcATop,
             )
           : null;

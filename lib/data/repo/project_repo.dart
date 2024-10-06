@@ -10,10 +10,10 @@ abstract class ProjectRepo {
   Future<int> createProject(ProjectModel project);
   Future<void> updateProject(ProjectModel project);
   Future<void> renameProject(int projectId, String name);
-  Future<void> deleteProject(ProjectModel project);
+  Future<void> deleteProject(int projectId);
   Future<void> createLayer(int projectId, LayerModel layer);
   Future<void> updateLayer(int projectId, LayerModel layer);
-  Future<void> deleteLayer(int layerId);
+  Future<void> deleteLayer(int projectId, int layerId);
 }
 
 class ProjectLocalRepo extends ProjectRepo {
@@ -45,9 +45,9 @@ class ProjectLocalRepo extends ProjectRepo {
   }
 
   @override
-  Future<void> deleteProject(ProjectModel project) async {
+  Future<void> deleteProject(int projectId) async {
     return _addTask(() async {
-      await db.deleteProject(project.id);
+      await db.deleteProject(projectId);
     });
   }
 
@@ -66,7 +66,7 @@ class ProjectLocalRepo extends ProjectRepo {
   }
 
   @override
-  Future<void> deleteLayer(int layerId) async {
+  Future<void> deleteLayer(int projectId, int layerId) async {
     return _addTask(() async {
       await db.deleteLayer(layerId);
     });

@@ -19,6 +19,9 @@ class Assets {
   static const images = (
     brush2: 'assets/images/brush2.png',
     brush3: 'assets/images/brush3.png',
+    brush4: 'assets/images/brush4.png',
+    brush5: 'assets/images/brush5.png',
+    brush6: 'assets/images/brush6.png',
     brush1: 'assets/images/brush_1.png',
     brushCircle: 'assets/images/brush_circle.png',
     bubbles: 'assets/images/bubbles.png',
