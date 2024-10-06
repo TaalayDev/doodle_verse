@@ -191,6 +191,8 @@ class _DrawBodyState extends State<DrawBody> {
                   onSelectTool: (value) {
                     if (value == 0) {
                       _showBrushPicker();
+                    } else if (value == 2) {
+                      _setBrush(widget.tools.eraser);
                     }
                   },
                   onColorPicker: () {

@@ -40,7 +40,9 @@ class ToolMenu extends StatelessWidget {
           icon: const Icon(
             Fontisto.eraser,
           ),
-          onPressed: () {},
+          onPressed: () {
+            onSelectTool(2);
+          },
         ),
         // selection tool
         IconButton(

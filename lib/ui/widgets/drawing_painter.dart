@@ -17,14 +17,18 @@ class DrawingPainter extends CustomPainter {
     canvas.saveLayer(Offset.zero & size, Paint());
     final dirtyRegion = controller.getDirtyRegion();
 
-    if (controller.cachedImage == null || controller.isDirty) {
+    if (controller.isDirty) {
       _renderCacheImage(size, null);
     }
 
-    if (controller.cachedImage != null) {
-      canvas.drawImage(controller.cachedImage!, Offset.zero, Paint());
+    for (var i = 0; i < controller.cachedImages.length; i++) {
+      final cache = controller.cachedImages[i];
+      if (!cache.isVisible) continue;
+      canvas.drawImage(cache.image, Offset.zero, Paint());
+      if (controller.currentLayer.id == cache.id) {
+        _renderDirtyRegion(canvas, size, Offset.zero & size);
+      }
     }
-    _renderDirtyRegion(canvas, size, Offset.zero & size);
 
     canvas.restore();
     controller.clearDirtyRegions();
@@ -41,9 +45,7 @@ class DrawingPainter extends CustomPainter {
   ) {
     final recorder = ui.PictureRecorder();
     final regionCanvas = Canvas(recorder);
-    final paint = Paint()
-      ..blendMode = BlendMode.srcOver
-      ..isAntiAlias = true;
+    final paint = Paint();
 
     regionCanvas.saveLayer(
       Rect.fromLTWH(0, 0, size.width, size.height),
@@ -51,17 +53,18 @@ class DrawingPainter extends CustomPainter {
     );
 
     if (controller.currentPath != null) {
+      var path = controller.currentPath!.brush.blendMode == BlendMode.clear
+          ? controller.currentPath!.copyWith(
+              color: Colors.white,
+              brush: controller.currentPath!.brush.copyWith(
+                blendMode: BlendMode.srcOver,
+              ),
+            )
+          : controller.currentPath!;
       _drawingCanvas.drawPath(
         regionCanvas,
         size,
-        controller.currentPath!.copyWith(
-          color: controller.currentPath!.brush.blendMode == BlendMode.clear
-              ? Colors.white
-              : controller.currentPath!.color,
-          brush: controller.currentPath!.brush.copyWith(
-            blendMode: BlendMode.srcOver,
-          ),
-        ),
+        path,
       );
     }
 
@@ -82,6 +85,5 @@ class DrawingPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant DrawingPainter oldDelegate) =>
-      oldDelegate.controller != controller;
+  bool shouldRepaint(covariant DrawingPainter oldDelegate) => true;
 }

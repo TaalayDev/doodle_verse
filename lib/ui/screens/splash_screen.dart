@@ -4,7 +4,6 @@ import 'dart:math' as math;
 import '../../core/canvas/tools_manager.dart';
 import '../../core/canvas/shader_manager.dart';
 import '../../core.dart';
-import 'demo_draw_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});

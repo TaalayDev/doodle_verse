@@ -1,24 +1,55 @@
 import 'dart:ui' as ui;
-import 'package:flutter/foundation.dart';
+
+import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:collection/collection.dart';
 
 import '../../data.dart';
 import '../../data/models/drawing_path.dart';
 import 'dirty_region_tracker.dart';
 import 'drawing_canvas.dart';
 
-class DrawState {
+class LayerCacheImage extends Equatable {
+  final int id;
+  final ui.Image image;
+  final bool isVisible;
+  final bool isDirty;
+
+  const LayerCacheImage(
+    this.id,
+    this.image, {
+    this.isVisible = true,
+    this.isDirty = true,
+  });
+
+  LayerCacheImage copyWith({
+    int? id,
+    ui.Image? image,
+    bool? isVisible,
+    bool? isDirty,
+  }) {
+    return LayerCacheImage(
+      id ?? this.id,
+      image ?? this.image,
+      isVisible: isVisible ?? this.isVisible,
+      isDirty: isDirty ?? this.isDirty,
+    );
+  }
+
+  @override
+  List<Object?> get props => [id];
+}
+
+class DrawState extends Equatable {
   final List<LayerModel> layers;
   final int currentLayerIndex;
-  final Map<int, ui.Image> layersCache;
-  final ui.Image? compositeCache;
+  final List<LayerCacheImage> layersCache;
 
-  DrawState({
+  const DrawState({
     required this.layers,
     required this.currentLayerIndex,
-    this.layersCache = const {},
-    this.compositeCache,
+    this.layersCache = const [],
   });
 
   LayerModel get currentLayer => layers[currentLayerIndex];
@@ -26,34 +57,17 @@ class DrawState {
   DrawState copyWith({
     List<LayerModel>? layers,
     int? currentLayerIndex,
-    Map<int, ui.Image>? layersCache,
-    ui.Image? compositeCache,
+    List<LayerCacheImage>? layersCache,
   }) {
     return DrawState(
       layers: layers ?? this.layers,
       currentLayerIndex: currentLayerIndex ?? this.currentLayerIndex,
       layersCache: layersCache ?? this.layersCache,
-      compositeCache: compositeCache ?? this.compositeCache,
     );
   }
 
   @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-
-    return other is DrawState &&
-        listEquals(other.layers, layers) &&
-        other.currentLayerIndex == currentLayerIndex &&
-        mapEquals(other.layersCache, layersCache) &&
-        other.compositeCache == compositeCache;
-  }
-
-  @override
-  int get hashCode =>
-      layers.hashCode ^
-      currentLayerIndex.hashCode ^
-      layersCache.hashCode ^
-      compositeCache.hashCode;
+  List<Object?> get props => [layers, currentLayerIndex, layersCache];
 }
 
 class DrawingController extends ChangeNotifier {
@@ -70,13 +84,13 @@ class DrawingController extends ChangeNotifier {
   final DrawingCanvas drawingCanvas = DrawingCanvas();
 
   final BuildContext context;
-  DrawState _currentState = DrawState(layers: [], currentLayerIndex: 0);
+  DrawState _currentState = const DrawState(layers: [], currentLayerIndex: 0);
   final List<DrawState> _undoStates = [];
   final List<DrawState> _redoStates = [];
   DrawingPath? currentPath;
   bool isDirty = true;
 
-  ui.Image? get cachedImage => _currentState.compositeCache;
+  List<LayerCacheImage> get cachedImages => _currentState.layersCache;
 
   int get currentLayerIndex => _currentState.currentLayerIndex;
   LayerModel get currentLayer =>
@@ -175,17 +189,49 @@ class DrawingController extends ChangeNotifier {
   }
 
   void updateLayerCache(Size size, Rect? region) {
-    for (var layer in _currentState.layers) {
-      _updateLayerCache(size, layer, region);
+    for (var i = 0; i < _currentState.layers.length; i++) {
+      final layer = _currentState.layers[i];
+      if (!layer.isVisible) {
+        continue;
+      }
+      final cache = _currentState.layersCache.firstWhereOrNull(
+        (cache) => cache.id == layer.id,
+      );
+      if (cache == null ||
+          cache.isDirty == true ||
+          layer.id == currentLayer.id) {
+        _updateLayerCache(size, layer, region);
+      }
     }
     _updateCache(size);
+  }
+
+  void _setLayerCacheVisibility(int layerId, bool isVisible) {
+    final updatedCache = _currentState.layersCache.map((cache) {
+      if (cache.id == layerId) {
+        return cache.copyWith(isVisible: isVisible, isDirty: true);
+      }
+      return cache;
+    }).toList();
+
+    _currentState = _currentState.copyWith(layersCache: updatedCache);
+    notifyListeners();
+  }
+
+  void _removeLayerCache(int layerId) {
+    final updatedCache = _currentState.layersCache
+        .where((cache) => cache.id != layerId)
+        .toList();
+
+    _currentState = _currentState.copyWith(layersCache: updatedCache);
+    notifyListeners();
   }
 
   void _updateLayerCache(
     Size size,
     LayerModel layer,
     Rect? region,
-  ) async {
+  ) {
     final recorder = ui.PictureRecorder();
     final canvas = Canvas(recorder);
     final width = region?.width ?? size.width;
@@ -213,43 +259,37 @@ class DrawingController extends ChangeNotifier {
       height.toInt(),
     );
 
-    _currentState = _currentState.copyWith(
-      layersCache: {
-        ..._currentState.layersCache,
-        layer.id: image,
-      },
-    );
+    final index = _currentState.layersCache.indexWhere((cache) {
+      return cache.id == layer.id;
+    });
+    if (index != -1) {
+      final updatedCache = List<LayerCacheImage>.from(
+        _currentState.layersCache,
+      );
+      updatedCache[index] = updatedCache[index].copyWith(
+        image: image,
+        isDirty: false,
+      );
+      _currentState = _currentState.copyWith(layersCache: updatedCache);
+    } else {
+      _currentState = _currentState.copyWith(
+        layersCache: [
+          ..._currentState.layersCache,
+          LayerCacheImage(layer.id, image),
+        ],
+      );
+    }
   }
 
   void _updateCache(Size size) {
-    final recorder = ui.PictureRecorder();
-    final canvas = Canvas(recorder);
-    final width = size.width;
-    final height = size.height;
-    canvas.saveLayer(
-      Rect.fromLTWH(0, 0, width, height),
-      Paint()..isAntiAlias = true,
-    );
-
-    for (var image in _currentState.layersCache.values) {
-      canvas.drawImage(image, Offset.zero, Paint());
-    }
-
-    canvas.restore();
-
-    final picture = recorder.endRecording();
-    final image = picture.toImageSync(
-      width.toInt(),
-      height.toInt(),
-    );
-
-    _currentState = _currentState.copyWith(compositeCache: image);
+    _currentState = _currentState.copyWith();
     isDirty = false;
   }
 
   // Layer
   void setActiveLayer(int index) {
     _currentState = _currentState.copyWith(currentLayerIndex: index);
+    isDirty = true;
     notifyListeners();
   }
 
@@ -259,7 +299,11 @@ class DrawingController extends ChangeNotifier {
     final updatedLayers = List<LayerModel>.from(_currentState.layers);
     updatedLayers[index] = updatedLayer;
 
-    _currentState = _currentState.copyWith(layers: updatedLayers);
+    _currentState = _currentState.copyWith(
+      layers: updatedLayers,
+    );
+    _setLayerCacheVisibility(updatedLayer.id, isVisible);
+
     isDirty = true;
     notifyListeners();
   }
@@ -274,6 +318,7 @@ class DrawingController extends ChangeNotifier {
   }
 
   void deleteLayer(int index) {
+    _removeLayerCache(_currentState.layers[index].id);
     _currentState = _currentState.copyWith(
       layers: List<LayerModel>.from(_currentState.layers)..removeAt(index),
       currentLayerIndex: 0,
