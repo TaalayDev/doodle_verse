@@ -12,38 +12,22 @@ class DrawingPath extends Equatable {
   final Color color;
   final double width;
   final List<Offset> points;
+  final Path path;
+  final Offset startPoint;
+  final Offset endPoint;
   final Map<String, double> randoms = {};
 
-  DrawingPath({
+  DrawingPath(
+    this.path, {
     required this.brush,
     required this.color,
     required this.width,
     required this.points,
+    this.startPoint = Offset.zero,
+    this.endPoint = Offset.zero,
   });
 
   Path createPath() {
-    final path = Path();
-    if (points.isEmpty || points.length < 2) {
-      return path;
-    }
-
-    path.moveTo(
-      points.first.dx,
-      points.first.dy,
-    );
-
-    for (int i = 1; i < points.length; i++) {
-      final p0 = points[i - 1];
-      final p1 = points[i];
-
-      path.quadraticBezierTo(
-        p0.dx,
-        p0.dy,
-        (p0.dx + p1.dx) / 2,
-        (p0.dy + p1.dy) / 2,
-      );
-    }
-
     return path;
   }
 
@@ -80,19 +64,25 @@ class DrawingPath extends Equatable {
   }
 
   DrawingPath copyWith({
+    Path? path,
     BrushData? brush,
     Color? color,
     double? width,
     List<Offset>? points,
+    Offset? startPoint,
+    Offset? endPoint,
   }) {
     return DrawingPath(
+      path ?? this.path,
       brush: brush ?? this.brush,
       color: color ?? this.color,
       width: width ?? this.width,
       points: points ?? this.points,
+      startPoint: startPoint ?? this.startPoint,
+      endPoint: endPoint ?? this.endPoint,
     )..randoms.addAll(randoms);
   }
 
   @override
-  List<Object?> get props => [brush, color, width, points];
+  List<Object?> get props => [brush, color, width, points, id, path];
 }

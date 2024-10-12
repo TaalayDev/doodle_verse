@@ -7,7 +7,7 @@ import '../../core/canvas/drawing_controller.dart';
 class DrawingPainter extends CustomPainter {
   DrawingPainter(
     this.controller,
-  ) : super(repaint: controller);
+  ) : super();
 
   final DrawingController controller;
   DrawingCanvas get _drawingCanvas => controller.drawingCanvas;
@@ -61,11 +61,14 @@ class DrawingPainter extends CustomPainter {
               ),
             )
           : controller.currentPath!;
-      _drawingCanvas.drawPath(
-        regionCanvas,
-        size,
-        path,
-      );
+      if (controller.currentPathImage != null) {
+        regionCanvas.drawImage(
+          controller.currentPathImage!,
+          Offset.zero,
+          Paint(),
+        );
+      }
+      _drawingCanvas.drawPath(regionCanvas, size, path);
     }
 
     regionCanvas.restore();
@@ -82,6 +85,8 @@ class DrawingPainter extends CustomPainter {
       dirtyRegion,
       Paint(),
     );
+
+    controller.currentPathCached(image);
   }
 
   @override

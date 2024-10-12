@@ -125,6 +125,15 @@ class LayerStateModel with _$LayerStateModel {
     return LayerStateModel(
       id: json['id'],
       drawingPath: DrawingPath(
+        Path()
+          ..addPolygon(
+            (points as List)
+                .map(
+                  (pointJson) => Offset(pointJson['x'], pointJson['y']),
+                )
+                .toList(),
+            false,
+          ),
         points: (points as List)
             .map(
               (pointJson) => Offset(pointJson['x'], pointJson['y']),

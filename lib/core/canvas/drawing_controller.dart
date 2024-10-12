@@ -2,6 +2,7 @@ import 'dart:ui' as ui;
 
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:collection/collection.dart';
 
@@ -70,7 +71,7 @@ class DrawState extends Equatable {
   List<Object?> get props => [layers, currentLayerIndex, layersCache];
 }
 
-class DrawingController extends ChangeNotifier {
+class DrawingController {
   DrawingController(
     this.context, {
     this.currentPath,
@@ -82,12 +83,15 @@ class DrawingController extends ChangeNotifier {
   }
 
   final DrawingCanvas drawingCanvas = DrawingCanvas();
+  late Function() notifyListeners = () {};
 
   final BuildContext context;
   DrawState _currentState = const DrawState(layers: [], currentLayerIndex: 0);
   final List<DrawState> _undoStates = [];
   final List<DrawState> _redoStates = [];
   DrawingPath? currentPath;
+  ui.Image? _currentPathImage;
+
   bool isDirty = true;
 
   List<LayerCacheImage> get cachedImages => _currentState.layersCache;
@@ -105,12 +109,21 @@ class DrawingController extends ChangeNotifier {
   bool get canUndo => _undoStates.isNotEmpty;
   bool get canRedo => _redoStates.isNotEmpty;
 
+  Offset _prevPosition = Offset.zero;
+  Offset _currentPosition = Offset.zero;
+
+  ui.Image? get currentPathImage => _currentPathImage;
+
   void startPath(BrushData brush, Color color, double width, Offset offset) {
+    _prevPosition = offset;
+
     currentPath = DrawingPath(
+      Path()..moveTo(offset.dx, offset.dy),
       brush: brush,
       color: color,
       width: width,
       points: [offset],
+      startPoint: offset,
     );
     dirtyRegionTracker.addPath(currentPath!);
     notifyListeners();
@@ -118,11 +131,40 @@ class DrawingController extends ChangeNotifier {
 
   void addPoint(Offset offset, BrushData brush, double brushSize) {
     if (currentPath != null) {
-      currentPath!.points.add(offset);
+      _currentPosition = offset;
+      currentPath = currentPath!.copyWith(
+        points: [...currentPath!.points, offset],
+        endPoint: offset,
+      );
+
+      final lerpX = _prevPosition.dx + (offset.dx - _prevPosition.dx) / 2;
+      final lerpY = _prevPosition.dy + (offset.dy - _prevPosition.dy) / 2;
+
+      currentPath!.path.quadraticBezierTo(
+        _prevPosition.dx,
+        _prevPosition.dy,
+        lerpX,
+        lerpY,
+      );
 
       dirtyRegionTracker.addPath(currentPath!);
       notifyListeners();
     }
+  }
+
+  void currentPathCached(ui.Image image) {
+    _currentPathImage = image;
+    if (currentPath != null) {
+      final lerpX =
+          _prevPosition.dx + (_currentPosition.dx - _prevPosition.dx) / 2;
+      final lerpY =
+          _prevPosition.dy + (_currentPosition.dy - _prevPosition.dy) / 2;
+
+      currentPath?.path.reset();
+      currentPath?.path.moveTo(lerpX, lerpY);
+      _prevPosition = _currentPosition;
+    }
+    notifyListeners();
   }
 
   void endPath() async {
@@ -143,8 +185,10 @@ class DrawingController extends ChangeNotifier {
       _currentState = _currentState.copyWith(layers: updatedLayers);
       _redoStates.clear();
 
-      isDirty = true;
       currentPath = null;
+      _prevPosition = Offset.zero;
+      _currentPosition = Offset.zero;
+      isDirty = true;
       notifyListeners();
     }
   }
@@ -245,10 +289,20 @@ class DrawingController extends ChangeNotifier {
       canvas.clipRect(region);
     }
 
-    final paths = layer.states.map((e) => e.drawingPath).toList();
-
-    for (var path in paths) {
-      drawingCanvas.drawPath(canvas, size, path);
+    final layerCache = _currentState.layersCache.firstWhereOrNull(
+      (cache) => cache.id == layer.id,
+    );
+    if (layerCache != null) {
+      canvas.drawImage(layerCache.image, Offset.zero, Paint());
+      if (_currentPathImage != null && layer.id == currentLayer.id) {
+        canvas.drawImage(_currentPathImage!, Offset.zero, Paint());
+      }
+      _currentPathImage = null;
+    } else {
+      final paths = layer.states.map((state) => state.drawingPath).toList();
+      for (final path in paths) {
+        drawingCanvas.drawPath(canvas, size, path);
+      }
     }
 
     canvas.restore();
@@ -335,10 +389,8 @@ class DrawingController extends ChangeNotifier {
     notifyListeners();
   }
 
-  @override
   void dispose() {
     _undoStates.clear();
     _redoStates.clear();
-    super.dispose();
   }
 }

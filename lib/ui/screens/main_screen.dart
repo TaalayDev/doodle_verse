@@ -96,7 +96,7 @@ class MainScreen extends HookConsumerWidget {
               const Icon(Feather.alert_circle, size: 64, color: Colors.red),
               const SizedBox(height: 16),
               Text(
-                'An error occurred',
+                'An error occurred\n$stackTrace',
                 style: Theme.of(context).textTheme.bodyLarge,
                 textAlign: TextAlign.center,
               ),

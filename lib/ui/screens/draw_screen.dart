@@ -220,15 +220,9 @@ class _DrawBodyState extends State<DrawBody> {
                             transform: Matrix4.identity()
                               ..translate(_offset.dx, _offset.dy)
                               ..scale(_scale),
-                            child: RepaintBoundary(
+                            child: DrawCanvas(
                               key: _canvasKey,
-                              child: ColoredBox(
-                                color: Colors.white,
-                                child: CustomPaint(
-                                  painter: DrawingPainter(_drawingController),
-                                  size: Size.infinite,
-                                ),
-                              ),
+                              drawingController: _drawingController,
                             ),
                           ),
                         ),
@@ -709,6 +703,45 @@ class _DrawBodyState extends State<DrawBody> {
     _drawingController.dispose();
 
     super.dispose();
+  }
+}
+
+class DrawCanvas extends StatefulWidget {
+  const DrawCanvas({
+    super.key,
+    required DrawingController drawingController,
+  }) : _drawingController = drawingController;
+
+  final DrawingController _drawingController;
+
+  @override
+  State<DrawCanvas> createState() => _DrawCanvasState();
+}
+
+class _DrawCanvasState extends State<DrawCanvas> {
+  late final DrawingController _drawingController = widget._drawingController;
+
+  @override
+  void initState() {
+    _drawingController.notifyListeners = () {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        setState(() {});
+      });
+    };
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return RepaintBoundary(
+      child: ColoredBox(
+        color: Colors.white,
+        child: CustomPaint(
+          painter: DrawingPainter(widget._drawingController),
+          size: Size.infinite,
+        ),
+      ),
+    );
   }
 }
 

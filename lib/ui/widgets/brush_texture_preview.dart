@@ -51,6 +51,11 @@ class _BrushTexturePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final drawingPath = DrawingPath(
+      Path()
+        ..addPolygon(
+          _createCurvedLinePoints(size),
+          false,
+        ),
       brush: brush,
       color: color,
       width: 4,

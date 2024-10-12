@@ -18,8 +18,13 @@ class Projects extends _$Projects {
 
   @override
   Stream<List<ProjectModel>> build() {
-    final dbProjects = repo.fetchProjects();
-    return dbProjects;
+    try {
+      final dbProjects = repo.fetchProjects();
+      return dbProjects;
+    } catch (e) {
+      print(e);
+      return Stream.value([]);
+    }
   }
 
   Future<int> addProject(ProjectModel project) async {

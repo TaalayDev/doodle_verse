@@ -128,6 +128,11 @@ class AppDatabase extends _$AppDatabase {
             .toList();
 
         final drawingPath = DrawingPath(
+          Path()
+            ..addPolygon(
+              points,
+              false,
+            ),
           points: points,
           brush: ToolsManager().getBrush(stateRow.brushId),
           color: Color(stateRow.colorValue),
